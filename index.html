@@ -6,7 +6,7 @@
 <title>Gold Trading Journal</title>
 <style>
 :root{
-  --bg1:#ffffff;--bg2:#f5f5f0;--bg3:#eeede8;
+  --bg1:#fff;--bg2:#f5f5f0;--bg3:#eeede8;
   --t1:#1a1a18;--t2:#5a5a56;--t3:#9a9a94;
   --bd:rgba(0,0,0,0.12);--bds:rgba(0,0,0,0.22);
   --rm:8px;--rl:12px;
@@ -52,8 +52,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .slbl{font-size:11px;color:var(--t3);margin-top:2px}
 .hsbar{border-radius:var(--rm);padding:13px 16px;margin-bottom:14px;font-size:14px;font-weight:600;text-align:center}
 .safe{background:var(--gnb);color:var(--gn)}.warn{background:var(--amb);color:var(--am)}.stop{background:var(--rdb);color:var(--rd)}
-.prow{display:flex;gap:8px;margin-bottom:14px;align-items:flex-end}
-.prow .f1{flex:1}
 .r2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .eform{display:flex;flex-direction:column;gap:12px}
 .fl label{font-size:12px;color:var(--t2);display:block;margin-bottom:5px}
@@ -94,25 +92,28 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .clitem input[type=checkbox]{width:17px;height:17px;margin-top:1px;flex-shrink:0;accent-color:var(--gn);cursor:pointer}
 .cltext{font-size:13px;color:var(--t1);line-height:1.5}
 .cltext.done{color:var(--t3);text-decoration:line-through}
+.syncbar{display:flex;align-items:center;gap:8px;border-radius:var(--rm);padding:8px 14px;font-size:12px;font-weight:500;margin-bottom:10px}
 @media(max-width:400px){.r2{grid-template-columns:1fr}.snum{font-size:18px}}
 </style>
 </head>
 <body>
 <div class="app">
 
+<!-- TOP BAR -->
 <div class="topbar">
   <div><div class="apptitle">Gold Trading Journal</div><div class="appsub">XAUUSD — Day Trade</div></div>
-  <button class="themebtn" onclick="toggleTheme()"><span id="ti">&#9728;</span><span id="tl">สว่าง</span></button>
+  <button class="themebtn" onclick="toggleTheme()"><span id="ti">&#9728;</span> <span id="tl">สว่าง</span></button>
 </div>
 
+<!-- TABS -->
 <div class="tabrow">
-  <button class="tab on"  onclick="showTab('rules',this)">Hard Stop</button>
-  <button class="tab"     onclick="showTab('journal',this)">บันทึกเทรด</button>
-  <button class="tab"     onclick="showTab('log',this)">ประวัติ</button>
-  <button class="tab"     onclick="showTab('summary',this)">สรุป</button>
-  <button class="tab"     onclick="showTab('lotsize',this)">Lot Size</button>
-  <button class="tab"     onclick="showTab('checklist',this)">เช็คก่อนเทรด</button>
-  <button class="tab"     onclick="showTab('monthly',this)">เป้าเดือน</button>
+  <button class="tab on" onclick="showTab('rules',this)">Hard Stop</button>
+  <button class="tab"    onclick="showTab('journal',this)">บันทึกเทรด</button>
+  <button class="tab"    onclick="showTab('log',this)">ประวัติ</button>
+  <button class="tab"    onclick="showTab('summary',this)">สรุป</button>
+  <button class="tab"    onclick="showTab('lotsize',this)">Lot Size</button>
+  <button class="tab"    onclick="showTab('checklist',this)">เช็คก่อนเทรด</button>
+  <button class="tab"    onclick="showTab('monthly',this)">เป้าเดือน</button>
 </div>
 
 <!-- TAB 1: HARD STOP -->
@@ -124,11 +125,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <div class="sbox"><div class="snum" id="hs-pnl">$0</div><div class="slbl">P&amp;L วันนี้</div></div>
   </div>
   <div class="hsbar safe" id="hs-bar">สถานะ: เทรดได้ปกติ</div>
-  <div class="prow">
-    <div class="f1 fl"><label>บันทึก P&amp;L เทรดล่าสุด ($)</label><input type="number" id="pnl-input" placeholder="เช่น -25 หรือ +40" step="1" inputmode="decimal"></div>
-    <button class="btn btnp" onclick="addPnl()">+ บันทึก</button>
-  </div>
-  <div class="resetrow"><button class="resetbtn" onclick="resetDay()">รีเซ็ตวันใหม่</button></div>
+  <p style="font-size:12px;color:var(--t3);text-align:center;margin-bottom:10px">อัปเดตอัตโนมัติเมื่อบันทึกเทรดในแท็บ "บันทึกเทรด"</p>
+  <div class="resetrow"><button class="resetbtn" onclick="resetDay()">&#8635; รีเซ็ตวันใหม่</button></div>
   <hr class="hr">
   <span class="slabel">กฎ Hard Stop ประจำวัน</span>
   <div class="card cdanger"><span class="badge bdr">หยุดทันที</span><div class="rtitle">เสียเกิน $50 ต่อวัน → หยุดเทรดทันที</div><div class="rdesc">ไม่มีข้อยกเว้น ไม่ว่าจะรู้สึกว่า "เดี๋ยวได้คืน" แค่ไหน สมองอยู่ในโหมด revenge แล้ว</div></div>
@@ -141,8 +139,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
 <!-- TAB 2: JOURNAL -->
 <div id="tab-journal" class="panel">
-  <div id="sync-bar" style="border-radius:var(--rm);padding:8px 14px;font-size:12px;font-weight:500;margin-bottom:10px;display:flex;align-items:center;gap:8px;background:var(--blb);color:var(--bl)">
-    <span id="sync-dot" style="width:8px;height:8px;border-radius:50%;background:var(--bl);flex-shrink:0"></span>
+  <div class="syncbar" id="sync-bar" style="background:var(--blb);color:var(--bl)">
+    <span id="sync-dot" style="width:8px;height:8px;border-radius:50%;background:var(--bl);flex-shrink:0;display:inline-block"></span>
     <span id="sync-txt">กำลังตรวจสอบการเชื่อมต่อ Google Sheets...</span>
   </div>
   <span class="slabel">บันทึกเทรด</span>
@@ -168,7 +166,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
         </div>
       </div>
       <div class="fl"><label>เหตุผลที่เข้า (ตามแผน / นอกแผน?)</label><textarea id="j-reason" placeholder="เช่น ราคา pullback มาแตะ EMA50 ในแนวโน้มขาขึ้น"></textarea></div>
-      <div class="fl"><label>สิ่งที่เรียนรู้จากเทรดนี้</label><textarea id="j-learn" placeholder="เช่น รีบเข้าก่อนที่แท่งเทียนยืนยัน ครั้งหน้าต้องรอให้ close ก่อน"></textarea></div>
+      <div class="fl"><label>สิ่งที่เรียนรู้จากเทรดนี้</label><textarea id="j-learn" placeholder="เช่น รีบเข้าก่อนแท่งเทียนยืนยัน ครั้งหน้าต้องรอให้ close ก่อน"></textarea></div>
       <button class="btn btnp" onclick="saveEntry()">บันทึกเทรดนี้</button>
     </div>
   </div>
@@ -184,7 +182,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 <div id="tab-summary" class="panel">
   <span class="slabel">สรุปสถิติ</span>
   <div class="sumcard">
-    <div class="sumtitle">สรุปวันนี้</div>
+    <div class="sumtitle">สรุปทั้งหมด</div>
     <div class="sumrow"><span>จำนวนเทรด</span><span class="sumval" id="sum-trades">0</span></div>
     <div class="sumrow"><span>ชนะ / แพ้</span><span class="sumval" id="sum-wl">0 / 0</span></div>
     <div class="sumrow"><span>Win Rate</span><span class="sumval" id="sum-wr">0%</span></div>
@@ -192,7 +190,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <div class="sumrow"><span>Revenge Trade</span><span class="sumval" style="color:var(--rd)" id="sum-rev">0 ครั้ง</span></div>
   </div>
   <div class="card">
-    <div class="rtitle" style="margin-bottom:8px">สัญญาณเตือนจาก Journal</div>
+    <div class="rtitle" style="margin-bottom:8px">สัญญาณเตือน</div>
     <div class="rdesc" id="sum-insight">บันทึกเทรดอย่างน้อย 5 ครั้งเพื่อดูสถิติ</div>
   </div>
 </div>
@@ -241,7 +239,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 <div id="tab-checklist" class="panel">
   <span class="slabel">เช็คก่อนกดเปิดเทรดทุกครั้ง</span>
   <div class="card">
-    <div style="font-size:13px;color:var(--t2);margin-bottom:12px;line-height:1.6">ติ๊กให้ครบทุกข้อก่อนเปิดออเดอร์ — ถ้าไม่ครบ <strong style="color:var(--rd)">ห้ามเข้า</strong></div>
+    <p style="font-size:13px;color:var(--t2);margin-bottom:12px;line-height:1.6">ติ๊กให้ครบทุกข้อก่อนเปิดออเดอร์ — ถ้าไม่ครบ <strong style="color:var(--rd)">ห้ามเข้า</strong></p>
     <div id="cl-items"></div>
     <hr class="hr">
     <div class="hsbar warn" id="cl-status" style="margin-bottom:10px">ยังไม่ได้ติ๊ก</div>
@@ -286,353 +284,372 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
 </div>
 <script>
-var isDark=false,emoTxt='';
-var entries=[],dailyPnl=0,dailyTrades=0,dailyWins=0,dailyLosses=0,consLoss=0;
-var CL=[
-  {id:'c0',ok:false,text:'เช็ค VWAP แล้ว — ราคาเหนือ VWAP = ฝั่งซื้อคุมเกม / ราคาใต้ VWAP = ฝั่งขายคุมเกม (เทรดตามฝั่งที่คุมเกมเท่านั้น)'},
-  {id:'c1',ok:false,text:'แนวโน้มหลักชัดเจน (ราคาเหนือ/ใต้ EMA 200)'},
-  {id:'c2',ok:false,text:'มี setup ที่ตรงกับแผน ไม่ใช่แค่รู้สึกว่าใช่'},
-  {id:'c3',ok:false,text:'ตั้ง Stop Loss แล้วก่อนกด'},
-  {id:'c4',ok:false,text:'ตั้ง Take Profit แล้ว หรือมีแผนปิดชัดเจน'},
-  {id:'c5',ok:false,text:'Lot size ไม่เกินที่คำนวณไว้'},
-  {id:'c6',ok:false,text:'ยังไม่ถึง Hard Stop วันนี้'},
-  {id:'c7',ok:false,text:'อารมณ์ปกติ ไม่ได้เทรดเพื่อเอาคืน'},
-  {id:'c8',ok:false,text:'นี่คือเทรดตามแผน ไม่ใช่เทรดเพราะกลัวพลาด'}
+// ─── Config ───────────────────────────────
+var SHEET_URL = 'https://script.google.com/macros/s/AKfycbx435Lsh0KuyYRqsd0ZRWIy_6UhM_n44RQVzqnKn6PcciDOu608p1QT3jXu94NWgs1VcA/exec';
+var LS_ENTRIES = 'gtj_entries';
+var LS_DAILY   = 'gtj_daily';
+var LS_MONTHLY = 'gtj_monthly';
+var LS_THEME   = 'gtj_theme';
+var LS_DATE    = 'gtj_date';
+
+// ─── State ────────────────────────────────
+var isDark = false, emoTxt = '';
+var entries = [];
+var dailyPnl = 0, dailyTrades = 0, dailyWins = 0, dailyLosses = 0, consLoss = 0;
+var CL = [
+  {id:'c0', ok:false, text:'เช็ค VWAP แล้ว — ราคาเหนือ VWAP = ฝั่งซื้อคุมเกม / ราคาใต้ VWAP = ฝั่งขายคุมเกม (เทรดตามฝั่งที่คุมเกมเท่านั้น)'},
+  {id:'c1', ok:false, text:'แนวโน้มหลักชัดเจน (ราคาเหนือ/ใต้ EMA 200)'},
+  {id:'c2', ok:false, text:'มี setup ที่ตรงกับแผน ไม่ใช่แค่รู้สึกว่าใช่'},
+  {id:'c3', ok:false, text:'ตั้ง Stop Loss แล้วก่อนกด'},
+  {id:'c4', ok:false, text:'ตั้ง Take Profit แล้ว หรือมีแผนปิดชัดเจน'},
+  {id:'c5', ok:false, text:'Lot size ไม่เกินที่คำนวณไว้'},
+  {id:'c6', ok:false, text:'ยังไม่ถึง Hard Stop วันนี้'},
+  {id:'c7', ok:false, text:'อารมณ์ปกติ ไม่ได้เทรดเพื่อเอาคืน'},
+  {id:'c8', ok:false, text:'นี่คือเทรดตามแผน ไม่ใช่เทรดเพราะกลัวพลาด'}
 ];
 
-function toggleTheme(){
-  isDark=!isDark;
-  document.documentElement.setAttribute('data-theme',isDark?'dark':'');
-  document.getElementById('ti').innerHTML=isDark?'&#9790;':'&#9728;';
-  document.getElementById('tl').textContent=isDark?'มืด':'สว่าง';
+// ─── Theme ────────────────────────────────
+function toggleTheme() {
+  isDark = !isDark;
+  document.documentElement.setAttribute('data-theme', isDark ? 'dark' : '');
+  document.getElementById('ti').innerHTML   = isDark ? '&#9790;' : '&#9728;';
+  document.getElementById('tl').textContent = isDark ? 'มืด' : 'สว่าง';
+  try { localStorage.setItem(LS_THEME, isDark ? 'dark' : 'light'); } catch(e) {}
 }
 
-function showTab(t,btn){
-  document.querySelectorAll('.tab').forEach(function(b){b.classList.remove('on')});
-  document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('on')});
+// ─── Tabs ─────────────────────────────────
+function showTab(t, btn) {
+  document.querySelectorAll('.tab').forEach(function(b)  { b.classList.remove('on'); });
+  document.querySelectorAll('.panel').forEach(function(p) { p.classList.remove('on'); });
   btn.classList.add('on');
-  document.getElementById('tab-'+t).classList.add('on');
-  if(t==='summary')renderSummary();
-  if(t==='checklist')renderCL();
-  if(t==='monthly')calcMonthly();
-  if(t==='lotsize')calcLot();
+  document.getElementById('tab-' + t).classList.add('on');
+  if (t === 'summary')   renderSummary();
+  if (t === 'checklist') renderCL();
+  if (t === 'monthly')   calcMonthly();
+  if (t === 'lotsize')   calcLot();
 }
 
-function selEmo(btn){
-  document.querySelectorAll('.ebtn').forEach(function(b){b.classList.remove('sel','selr')});
-  btn.classList.add('sel');emoTxt=btn.textContent.trim();
+// ─── Emotion ──────────────────────────────
+function selEmo(btn) {
+  document.querySelectorAll('.ebtn').forEach(function(b) { b.classList.remove('sel','selr'); });
+  btn.classList.add('sel');
+  emoTxt = btn.textContent.trim();
 }
-function selEmoR(btn){
-  document.querySelectorAll('.ebtn').forEach(function(b){b.classList.remove('sel','selr')});
-  btn.classList.add('selr');emoTxt=btn.textContent.trim();
-}
-
-function addPnl(){
-  var v=parseFloat(document.getElementById('pnl-input').value);
-  if(isNaN(v))return;
-  dailyPnl+=v;dailyTrades++;
-  if(v>0){dailyWins++;consLoss=0;}
-  else if(v<0){dailyLosses++;consLoss++;}
-  else{consLoss=0;}
-  document.getElementById('pnl-input').value='';
-  updateHS();
-}
-function updateHS(){
-  document.getElementById('hs-trades').textContent=dailyTrades;
-  document.getElementById('hs-wins').textContent=dailyWins;
-  var pe=document.getElementById('hs-pnl');
-  pe.textContent=(dailyPnl>=0?'+':'')+dailyPnl.toFixed(0)+'$';
-  pe.className='snum '+(dailyPnl>=0?'g':'r');
-  var b=document.getElementById('hs-bar');
-  if(dailyPnl<=-50||consLoss>=3||dailyTrades>=7){b.className='hsbar stop';b.textContent='HARD STOP — หยุดเทรดวันนี้ทันที';}
-  else if(dailyPnl<=-30||consLoss>=2||dailyPnl>=80){b.className='hsbar warn';b.textContent=dailyPnl>=80?'กำไรดีแล้ว — พิจารณาหยุดวันนี้':'เตือน — ลด lot หรือพักก่อน';}
-  else{b.className='hsbar safe';b.textContent='สถานะ: เทรดได้ปกติ';}
-}
-function resetDay(){
-  if(!confirm('รีเซ็ตข้อมูลวันใหม่?'))return;
-  dailyPnl=0;dailyTrades=0;dailyWins=0;dailyLosses=0;consLoss=0;updateHS();saveAll();
+function selEmoR(btn) {
+  document.querySelectorAll('.ebtn').forEach(function(b) { b.classList.remove('sel','selr'); });
+  btn.classList.add('selr');
+  emoTxt = btn.textContent.trim();
 }
 
-var SHEET_URL='https://script.google.com/macros/s/AKfycbzIYzLXa-ES-qPFDe6b-gyh8DLgNdTOFuDAP0mgI47Zh8ta2uhQ7h_kDk2AT6sB5aipGQ/exec';
-
-function setSyncStatus(state,msg){
-  var bar=document.getElementById('sync-bar');
-  var dot=document.getElementById('sync-dot');
-  var txt=document.getElementById('sync-txt');
-  if(!bar)return;
-  var cfg={
-    ok:{bg:'var(--gnb)',col:'var(--gn)'},
-    err:{bg:'var(--rdb)',col:'var(--rd)'},
-    loading:{bg:'var(--blb)',col:'var(--bl)'}
-  };
-  var c=cfg[state]||cfg.loading;
-  bar.style.background=c.bg;bar.style.color=c.col;
-  dot.style.background=c.col;txt.textContent=msg;
+// ─── Hard Stop ────────────────────────────
+function updateHS() {
+  document.getElementById('hs-trades').textContent = dailyTrades;
+  document.getElementById('hs-wins').textContent   = dailyWins;
+  var pe = document.getElementById('hs-pnl');
+  pe.textContent = (dailyPnl >= 0 ? '+' : '') + dailyPnl.toFixed(0) + '$';
+  pe.className   = 'snum ' + (dailyPnl >= 0 ? 'g' : 'r');
+  var b = document.getElementById('hs-bar');
+  if (dailyPnl <= -50 || consLoss >= 3 || dailyTrades >= 7) {
+    b.className = 'hsbar stop'; b.textContent = 'HARD STOP — หยุดเทรดวันนี้ทันที';
+  } else if (dailyPnl <= -30 || consLoss >= 2 || dailyPnl >= 80) {
+    b.className = 'hsbar warn';
+    b.textContent = dailyPnl >= 80 ? 'กำไรดีแล้ว — พิจารณาหยุดวันนี้' : 'เตือน — ลด lot หรือพักก่อน';
+  } else {
+    b.className = 'hsbar safe'; b.textContent = 'สถานะ: เทรดได้ปกติ';
+  }
+}
+function resetDay() {
+  if (!confirm('รีเซ็ตข้อมูลวันใหม่?')) return;
+  dailyPnl = 0; dailyTrades = 0; dailyWins = 0; dailyLosses = 0; consLoss = 0;
+  updateHS(); saveLocal();
 }
 
-function saveToSheet(entry){
-  setSyncStatus('loading','กำลังบันทึกลง Google Sheets...');
-  fetch(SHEET_URL,{
-    method:'POST',
-    body:JSON.stringify({
-      action:'save',
-      date:entry.date,time:entry.time,dir:entry.dir,
-      result:entry.res,entry:entry.entry,pnl:entry.pnl,
-      emotion:entry.emo,reason:entry.reason,learn:entry.learn
-    })
-  })
-  .then(function(r){return r.json();})
-  .then(function(d){
-    if(d.status==='ok')setSyncStatus('ok','บันทึกลง Google Sheets สำเร็จ ✓');
-    else setSyncStatus('err','บันทึกไม่สำเร็จ — ข้อมูลเก็บใน localStorage แทน');
-  })
-  .catch(function(){setSyncStatus('err','ไม่มีอินเตอร์เน็ต — ข้อมูลเก็บใน localStorage แทน');});
-}
-
-function loadFromSheet(){
-  setSyncStatus('loading','กำลังโหลดข้อมูลจาก Google Sheets...');
-  fetch(SHEET_URL)
-  .then(function(r){return r.json();})
-  .then(function(d){
-    if(d.status==='ok'&&d.rows&&d.rows.length>1){
-      var rows=d.rows.slice(1).reverse();
-      entries=rows.map(function(r){
-        return {date:r[0],time:r[1],dir:r[2],res:r[3],entry:r[4],pnl:r[5],emo:r[6],reason:r[7],learn:r[8]};
-      });
-      saveAll();renderLog();
-      setSyncStatus('ok','โหลดข้อมูลจาก Google Sheets สำเร็จ — '+entries.length+' รายการ');
-    } else {
-      setSyncStatus('ok','เชื่อมต่อ Google Sheets แล้ว — ยังไม่มีข้อมูล');
-    }
-  })
-  .catch(function(){
-    setSyncStatus('err','ไม่สามารถเชื่อมต่อ Google Sheets — ใช้ข้อมูล localStorage แทน');
-  });
-}
-
-function saveEntry(){
-  var now=new Date();
-  var e={
-    dir:document.getElementById('j-dir').value,
-    res:document.getElementById('j-res').value,
-    entry:document.getElementById('j-entry').value,
-    pnl:document.getElementById('j-pnl').value,
-    reason:document.getElementById('j-reason').value,
-    learn:document.getElementById('j-learn').value,
-    emo:emoTxt||'-',
-    time:now.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'}),
-    date:now.toLocaleDateString('th-TH',{day:'numeric',month:'short'})
+// ─── Journal ──────────────────────────────
+function saveEntry() {
+  var pnlVal = parseFloat(document.getElementById('j-pnl').value) || 0;
+  var resVal = document.getElementById('j-res').value;
+  var now    = new Date();
+  var e = {
+    date:   now.toLocaleDateString('th-TH', {day:'numeric', month:'short'}),
+    time:   now.toLocaleTimeString('th-TH', {hour:'2-digit', minute:'2-digit'}),
+    dir:    document.getElementById('j-dir').value,
+    res:    resVal,
+    entry:  document.getElementById('j-entry').value,
+    pnl:    document.getElementById('j-pnl').value,
+    reason: document.getElementById('j-reason').value,
+    learn:  document.getElementById('j-learn').value,
+    emo:    emoTxt || '-'
   };
   entries.unshift(e);
-  ['j-entry','j-pnl','j-reason','j-learn'].forEach(function(id){document.getElementById(id).value='';});
-  emoTxt='';document.querySelectorAll('.ebtn').forEach(function(b){b.classList.remove('sel','selr')});
-  saveAll();
-  saveToSheet(e);
-  renderLog();showTab('log',document.querySelectorAll('.tab')[2]);
+  // อัปเดต Hard Stop อัตโนมัติ
+  dailyPnl += pnlVal; dailyTrades++;
+  if (resVal === 'Win')       { dailyWins++;   consLoss = 0; }
+  else if (resVal === 'Loss') { dailyLosses++; consLoss++;   }
+  else                        { consLoss = 0; }
+  updateHS();
+  // เคลียร์ฟอร์ม
+  ['j-entry','j-pnl','j-reason','j-learn'].forEach(function(id) { document.getElementById(id).value = ''; });
+  emoTxt = '';
+  document.querySelectorAll('.ebtn').forEach(function(b) { b.classList.remove('sel','selr'); });
+  saveLocal();
+  sendToSheet(e);
+  renderLog();
+  showTab('log', document.querySelectorAll('.tab')[2]);
 }
-function renderLog(){
-  var el=document.getElementById('log-list');
-  if(!entries.length){el.innerHTML='<div class="empty">ยังไม่มีบันทึก</div>';return;}
-  el.innerHTML=entries.map(function(e){
-    var pn=parseFloat(e.pnl),ps=e.pnl?(pn>=0?'+':'')+e.pnl+'$':'-';
-    var ir=e.emo==='revenge'||e.emo==='โกรธ/หัวร้อน';
-    var rc=e.res==='Win'?'win':e.res==='Loss'?'loss':'be';
-    return '<div class="logitem"><div class="loghd"><span class="logdir">'+e.date+' '+e.time+'&nbsp;&nbsp;'+e.dir+'</span>'
-      +'<span class="logres '+rc+'">'+e.res+' '+ps+'</span></div>'
-      +'<div class="logemo">อารมณ์: <span class="'+(ir?'logrev':'')+'">'+e.emo+'</span></div>'
-      +(e.reason?'<div class="lognote">เหตุผล: '+e.reason+'</div>':'')
-      +(e.learn?'<div class="lognote">เรียนรู้: '+e.learn+'</div>':'')
-      +'</div>';
+
+// ─── Log ──────────────────────────────────
+function renderLog() {
+  var el = document.getElementById('log-list');
+  if (!entries.length) { el.innerHTML = '<div class="empty">ยังไม่มีบันทึก</div>'; return; }
+  el.innerHTML = entries.map(function(e) {
+    var pn = parseFloat(e.pnl);
+    var ps = e.pnl ? (pn >= 0 ? '+' : '') + e.pnl + '$' : '-';
+    var ir = e.emo === 'revenge' || e.emo === 'โกรธ/หัวร้อน';
+    var rc = e.res === 'Win' ? 'win' : e.res === 'Loss' ? 'loss' : 'be';
+    return '<div class="logitem">'
+      + '<div class="loghd">'
+      + '<span class="logdir">' + (e.date||'') + ' ' + (e.time||'') + '&nbsp;&nbsp;' + (e.dir||'') + '</span>'
+      + '<span class="logres ' + rc + '">' + (e.res||'') + ' ' + ps + '</span>'
+      + '</div>'
+      + '<div class="logemo">อารมณ์: <span class="' + (ir ? 'logrev' : '') + '">' + (e.emo||'-') + '</span></div>'
+      + (e.reason ? '<div class="lognote">เหตุผล: ' + e.reason + '</div>' : '')
+      + (e.learn  ? '<div class="lognote">เรียนรู้: ' + e.learn  + '</div>' : '')
+      + '</div>';
   }).join('');
 }
 
-function renderSummary(){
-  var tot=entries.length;
-  var w=entries.filter(function(e){return e.res==='Win'}).length;
-  var l=entries.filter(function(e){return e.res==='Loss'}).length;
-  var r=entries.filter(function(e){return e.emo==='revenge'||e.emo==='โกรธ/หัวร้อน'}).length;
-  var p=entries.reduce(function(s,e){return s+(parseFloat(e.pnl)||0)},0);
-  var wr=tot>0?Math.round(w/tot*100):0;
-  document.getElementById('sum-trades').textContent=tot;
-  document.getElementById('sum-wl').textContent=w+' / '+l;
-  document.getElementById('sum-wr').textContent=wr+'%';
-  document.getElementById('sum-pnl').textContent=(p>=0?'+':'')+p.toFixed(0)+'$';
-  document.getElementById('sum-rev').textContent=r+' ครั้ง';
-  var ins='';
-  if(tot<5){ins='บันทึกเทรดอย่างน้อย 5 ครั้งเพื่อดูสถิติ';}
-  else{
-    var pts=[];
-    if(r>0){var rl=entries.filter(function(e){return(e.emo==='revenge'||e.emo==='โกรธ/หัวร้อน')&&e.res==='Loss'}).length;pts.push('Revenge trade '+r+' ครั้ง แพ้ '+rl+' ครั้ง ('+Math.round(rl/r*100)+'%)');}
-    if(wr>=60)pts.push('Win rate ดีมาก ('+wr+'%) รักษาวินัยต่อไป');
-    else if(wr>=45)pts.push('Win rate พอใช้ได้ ('+wr+'%) ลองดู setup ที่ชนะบ่อยที่สุด');
-    else pts.push('Win rate ต่ำ ('+wr+'%) ลองลด trade ที่เข้านอกแผน');
-    ins=pts.join(' — ');
+// ─── Summary ──────────────────────────────
+function renderSummary() {
+  var tot = entries.length;
+  var w   = entries.filter(function(e) { return e.res === 'Win';  }).length;
+  var l   = entries.filter(function(e) { return e.res === 'Loss'; }).length;
+  var r   = entries.filter(function(e) { return e.emo === 'revenge' || e.emo === 'โกรธ/หัวร้อน'; }).length;
+  var p   = entries.reduce(function(s, e) { return s + (parseFloat(e.pnl) || 0); }, 0);
+  var wr  = tot > 0 ? Math.round(w / tot * 100) : 0;
+  document.getElementById('sum-trades').textContent = tot;
+  document.getElementById('sum-wl').textContent     = w + ' / ' + l;
+  document.getElementById('sum-wr').textContent     = wr + '%';
+  document.getElementById('sum-pnl').textContent    = (p >= 0 ? '+' : '') + p.toFixed(0) + '$';
+  document.getElementById('sum-rev').textContent    = r + ' ครั้ง';
+  var ins = '';
+  if (tot < 5) {
+    ins = 'บันทึกเทรดอย่างน้อย 5 ครั้งเพื่อดูสถิติ';
+  } else {
+    var pts = [];
+    if (r > 0) {
+      var rl = entries.filter(function(e) { return (e.emo==='revenge'||e.emo==='โกรธ/หัวร้อน') && e.res==='Loss'; }).length;
+      pts.push('Revenge trade ' + r + ' ครั้ง แพ้ ' + rl + ' ครั้ง (' + Math.round(rl/r*100) + '%)');
+    }
+    if (wr >= 60)      pts.push('Win rate ดีมาก (' + wr + '%) รักษาวินัยต่อไป');
+    else if (wr >= 45) pts.push('Win rate พอใช้ได้ (' + wr + '%) ลองดู setup ที่ชนะบ่อยที่สุด');
+    else               pts.push('Win rate ต่ำ (' + wr + '%) ลองลด trade ที่เข้านอกแผน');
+    ins = pts.join(' — ');
   }
-  document.getElementById('sum-insight').textContent=ins;
+  document.getElementById('sum-insight').textContent = ins;
 }
 
-function calcLot(){
-  var port=parseFloat(document.getElementById('ls-port').value)||0;
-  var rp=parseFloat(document.getElementById('ls-risk').value)||0;
-  var slp=parseFloat(document.getElementById('ls-sl').value)||0;
-  var lev=parseFloat(document.getElementById('ls-lev').value)||100;
-  var ru=port*rp/100,pip=slp/10;
-  var raw=pip>0?ru/(pip*10):0;
-  var lot=Math.floor(raw*10000)/10000;
-  if(lot<0.0001&&raw>0)lot=0.0001;
-  var tl=ru>0?Math.floor(port/ru):0;
-  var mg=lot*100000/lev;
-  document.getElementById('ls-rlot').textContent=lot.toFixed(4);
-  document.getElementById('ls-rloss').textContent='$'+ru.toFixed(2);
-  document.getElementById('ls-rtrades').textContent=tl;
-  document.getElementById('ls-dlot').textContent=lot.toFixed(4)+' lots';
-  document.getElementById('ls-dloss').textContent='$'+ru.toFixed(2);
-  document.getElementById('ls-dsl').textContent=slp+' points ('+pip.toFixed(0)+' pips)';
-  document.getElementById('ls-dmargin').textContent='~$'+mg.toFixed(2);
-  var w=document.getElementById('ls-warn');
-  if(rp>=5&&port<=200){w.className='hsbar stop';w.textContent='Risk '+rp+'% สูงเกินไปสำหรับพอร์ตขนาดนี้ — เสียแค่ '+tl+' เทรดพอร์ตหมด ควรใช้ 1-2%';}
-  else if(rp>=3){w.className='hsbar warn';w.textContent='Risk '+rp+'% ค่อนข้างสูง — นักเทรดอาชีพส่วนใหญ่ใช้ 1-2% ต่อเทรด';}
-  else{w.className='hsbar safe';w.textContent='Risk '+rp+'% เหมาะสม — พอร์ตอยู่ได้นานพอที่จะเรียนรู้';}
+// ─── Lot Size ─────────────────────────────
+function calcLot() {
+  var port = parseFloat(document.getElementById('ls-port').value) || 0;
+  var rp   = parseFloat(document.getElementById('ls-risk').value) || 0;
+  var slp  = parseFloat(document.getElementById('ls-sl').value)   || 0;
+  var lev  = parseFloat(document.getElementById('ls-lev').value)  || 100;
+  var ru   = port * rp / 100;
+  var pip  = slp / 10;
+  var raw  = pip > 0 ? ru / (pip * 10) : 0;
+  var lot  = Math.floor(raw * 10000) / 10000;
+  if (lot < 0.0001 && raw > 0) lot = 0.0001;
+  var tl = ru > 0 ? Math.floor(port / ru) : 0;
+  var mg = lot * 100000 / lev;
+  document.getElementById('ls-rlot').textContent    = lot.toFixed(4);
+  document.getElementById('ls-rloss').textContent   = '$' + ru.toFixed(2);
+  document.getElementById('ls-rtrades').textContent = tl;
+  document.getElementById('ls-dlot').textContent    = lot.toFixed(4) + ' lots';
+  document.getElementById('ls-dloss').textContent   = '$' + ru.toFixed(2);
+  document.getElementById('ls-dsl').textContent     = slp + ' points (' + pip.toFixed(0) + ' pips)';
+  document.getElementById('ls-dmargin').textContent = '~$' + mg.toFixed(2);
+  var w = document.getElementById('ls-warn');
+  if (rp >= 5 && port <= 200) { w.className='hsbar stop'; w.textContent='Risk '+rp+'% สูงเกินไปสำหรับพอร์ตขนาดนี้ — เสียแค่ '+tl+' เทรดพอร์ตหมด ควรใช้ 1-2%'; }
+  else if (rp >= 3)            { w.className='hsbar warn'; w.textContent='Risk '+rp+'% ค่อนข้างสูง — นักเทรดอาชีพส่วนใหญ่ใช้ 1-2% ต่อเทรด'; }
+  else                         { w.className='hsbar safe'; w.textContent='Risk '+rp+'% เหมาะสม — พอร์ตอยู่ได้นานพอที่จะเรียนรู้'; }
 }
 
-function renderCL(){
-  var el=document.getElementById('cl-items');
-  el.innerHTML=CL.map(function(item){
-    return '<label class="clitem"><input type="checkbox" '+(item.ok?'checked':'')+' onchange="toggleCL(\''+item.id+'\')">'
-      +'<span class="cltext'+(item.ok?' done':'')+'">'+item.text+'</span></label>';
+// ─── Checklist ────────────────────────────
+function renderCL() {
+  var el = document.getElementById('cl-items');
+  el.innerHTML = CL.map(function(item) {
+    return '<label class="clitem">'
+      + '<input type="checkbox" ' + (item.ok ? 'checked' : '') + ' onchange="toggleCL(\'' + item.id + '\')">'
+      + '<span class="cltext' + (item.ok ? ' done' : '') + '">' + item.text + '</span>'
+      + '</label>';
   }).join('');
   updateCLStatus();
 }
-function toggleCL(id){CL.forEach(function(i){if(i.id===id)i.ok=!i.ok;});renderCL();}
-function updateCLStatus(){
-  var d=CL.filter(function(i){return i.ok}).length,t=CL.length;
-  var s=document.getElementById('cl-status');
-  if(d===t){s.className='hsbar safe';s.textContent='ครบทุกข้อ — เปิดเทรดได้';}
-  else if(d>=t-2){s.className='hsbar warn';s.textContent='ติ๊กแล้ว '+d+'/'+t+' ข้อ — ยังขาดอีก '+(t-d)+' ข้อ';}
-  else{s.className='hsbar stop';s.textContent='ติ๊กแล้ว '+d+'/'+t+' ข้อ — ยังไม่พร้อมเทรด';}
+function toggleCL(id) { CL.forEach(function(i) { if (i.id === id) i.ok = !i.ok; }); renderCL(); }
+function updateCLStatus() {
+  var d = CL.filter(function(i) { return i.ok; }).length, t = CL.length;
+  var s = document.getElementById('cl-status');
+  if (d === t)       { s.className = 'hsbar safe'; s.textContent = 'ครบทุกข้อ — เปิดเทรดได้'; }
+  else if (d >= t-2) { s.className = 'hsbar warn'; s.textContent = 'ติ๊กแล้ว ' + d + '/' + t + ' ข้อ — ยังขาดอีก ' + (t-d) + ' ข้อ'; }
+  else               { s.className = 'hsbar stop'; s.textContent = 'ติ๊กแล้ว ' + d + '/' + t + ' ข้อ — ยังไม่พร้อมเทรด'; }
 }
-function submitCL(){
-  var d=CL.filter(function(i){return i.ok}).length;
-  if(d<CL.length){alert('ยังติ๊กไม่ครบ! เหลืออีก '+(CL.length-d)+' ข้อ\nตรวจสอบให้ครบก่อนเปิดเทรด');return;}
-  alert('ผ่านทุกข้อ! เปิดเทรดได้เลย — ขอให้โชคดีครับ');resetCL();
+function submitCL() {
+  var d = CL.filter(function(i) { return i.ok; }).length;
+  if (d < CL.length) { alert('ยังติ๊กไม่ครบ! เหลืออีก ' + (CL.length-d) + ' ข้อ'); return; }
+  alert('ผ่านทุกข้อ! เปิดเทรดได้เลย — ขอให้โชคดีครับ');
+  resetCL();
 }
-function resetCL(){CL.forEach(function(i){i.ok=false;});renderCL();}
+function resetCL() { CL.forEach(function(i) { i.ok = false; }); renderCL(); }
 
-function calcMonthly(){
-  var tThb=parseFloat(document.getElementById('mt-target').value)||0;
-  var fx=parseFloat(document.getElementById('mt-fx').value)||32.75;
-  var cur=parseFloat(document.getElementById('mt-cur').value)||0;
-  var tUsd=tThb/fx,curThb=cur*fx;
-  var leftThb=Math.max(0,tThb-curThb),leftUsd=Math.max(0,tUsd-cur);
-  var pct=tUsd>0?Math.min(100,Math.round(cur/tUsd*100)):0;
-  var today=new Date(),dim=new Date(today.getFullYear(),today.getMonth()+1,0).getDate();
-  var tdl=Math.max(1,Math.round((dim-today.getDate())*18/30));
-  var pd=leftUsd/tdl;
-  document.getElementById('mt-pctlbl').textContent=pct+'%';
-  var pb=document.getElementById('mt-pgbar');
-  pb.style.width=pct+'%';pb.style.background=pct>=100?'var(--gn)':pct>=60?'var(--am)':'var(--bl)';
-  document.getElementById('mt-done').textContent='฿'+Math.round(curThb).toLocaleString();
-  document.getElementById('mt-left').textContent='฿'+Math.round(leftThb).toLocaleString();
-  document.getElementById('mt-perday').textContent='$'+pd.toFixed(1);
-  var w=document.getElementById('mt-warn');
-  if(pct>=100){w.className='hsbar safe';w.textContent='ถึงเป้าแล้ว! หยุดเทรดเดือนนี้ได้เลย — ล็อคกำไรดีกว่าเสี่ยงเสียคืน';}
-  else if(pct>=75){w.className='hsbar safe';w.textContent=pct+'% แล้ว — ใกล้ถึงเป้า อย่า overtrade รีบปิด';}
-  else if(pd>30){w.className='hsbar stop';w.textContent='ต้องทำ $'+pd.toFixed(1)+'/วัน — สูงมาก เสี่ยง overtrade ควรทบทวนเป้าหมาย';}
-  else if(pd>15){w.className='hsbar warn';w.textContent='ต้องทำ $'+pd.toFixed(1)+'/วัน — ท้าทาย แต่ยังทำได้ถ้าเทรดตามแผน';}
-  else{w.className='hsbar safe';w.textContent='ต้องทำ $'+pd.toFixed(1)+'/วัน — อยู่ในแผน เทรดปกติได้เลย';}
+// ─── Monthly ──────────────────────────────
+function calcMonthly() {
+  var tThb = parseFloat(document.getElementById('mt-target').value) || 0;
+  var fx   = parseFloat(document.getElementById('mt-fx').value)     || 32.75;
+  var cur  = parseFloat(document.getElementById('mt-cur').value)    || 0;
+  var tUsd = tThb / fx, curThb = cur * fx;
+  var leftThb = Math.max(0, tThb - curThb);
+  var leftUsd = Math.max(0, tUsd - cur);
+  var pct  = tUsd > 0 ? Math.min(100, Math.round(cur / tUsd * 100)) : 0;
+  var today = new Date();
+  var dim  = new Date(today.getFullYear(), today.getMonth()+1, 0).getDate();
+  var tdl  = Math.max(1, Math.round((dim - today.getDate()) * 18 / 30));
+  var pd   = leftUsd / tdl;
+  document.getElementById('mt-pctlbl').textContent = pct + '%';
+  var pb = document.getElementById('mt-pgbar');
+  pb.style.width      = pct + '%';
+  pb.style.background = pct >= 100 ? 'var(--gn)' : pct >= 60 ? 'var(--am)' : 'var(--bl)';
+  document.getElementById('mt-done').textContent   = '฿' + Math.round(curThb).toLocaleString();
+  document.getElementById('mt-left').textContent   = '฿' + Math.round(leftThb).toLocaleString();
+  document.getElementById('mt-perday').textContent = '$' + pd.toFixed(1);
+  var w = document.getElementById('mt-warn');
+  if (pct >= 100)  { w.className='hsbar safe'; w.textContent='ถึงเป้าแล้ว! หยุดเทรดเดือนนี้ได้เลย — ล็อคกำไรดีกว่าเสี่ยงเสียคืน'; }
+  else if (pct>=75){ w.className='hsbar safe'; w.textContent=pct+'% แล้ว — ใกล้ถึงเป้า อย่า overtrade รีบปิด'; }
+  else if (pd>30)  { w.className='hsbar stop'; w.textContent='ต้องทำ $'+pd.toFixed(1)+'/วัน — สูงมาก เสี่ยง overtrade ควรทบทวนเป้าหมาย'; }
+  else if (pd>15)  { w.className='hsbar warn'; w.textContent='ต้องทำ $'+pd.toFixed(1)+'/วัน — ท้าทาย แต่ยังทำได้ถ้าเทรดตามแผน'; }
+  else             { w.className='hsbar safe'; w.textContent='ต้องทำ $'+pd.toFixed(1)+'/วัน — อยู่ในแผน เทรดปกติได้เลย'; }
+  saveLocal();
 }
-function syncPnl(){document.getElementById('mt-cur').value=dailyPnl.toFixed(2);calcMonthly();}
+function syncPnl() { document.getElementById('mt-cur').value = dailyPnl.toFixed(2); calcMonthly(); }
 
-// ── localStorage ──────────────────────────
-var LS_ENTRIES='gtj_entries';
-var LS_DAILY='gtj_daily';
-var LS_MONTHLY='gtj_monthly';
-var LS_THEME='gtj_theme';
-
-function saveAll(){
-  try{
-    localStorage.setItem(LS_ENTRIES,JSON.stringify(entries));
-    localStorage.setItem(LS_DAILY,JSON.stringify({
-      dailyPnl:dailyPnl,dailyTrades:dailyTrades,
-      dailyWins:dailyWins,dailyLosses:dailyLosses,consLoss:consLoss
+// ─── localStorage ─────────────────────────
+function saveLocal() {
+  try {
+    localStorage.setItem(LS_ENTRIES, JSON.stringify(entries));
+    localStorage.setItem(LS_DAILY, JSON.stringify({
+      dailyPnl:dailyPnl, dailyTrades:dailyTrades,
+      dailyWins:dailyWins, dailyLosses:dailyLosses, consLoss:consLoss
     }));
-    var mt=document.getElementById('mt-target');
-    var mf=document.getElementById('mt-fx');
-    var mc=document.getElementById('mt-cur');
-    if(mt&&mf&&mc)localStorage.setItem(LS_MONTHLY,JSON.stringify({
-      target:mt.value,fx:mf.value,cur:mc.value
+    localStorage.setItem(LS_MONTHLY, JSON.stringify({
+      target: document.getElementById('mt-target').value,
+      fx:     document.getElementById('mt-fx').value,
+      cur:    document.getElementById('mt-cur').value
     }));
-  }catch(e){}
+  } catch(err) {}
 }
-
-function loadAll(){
-  try{
-    // theme
-    var th=localStorage.getItem(LS_THEME);
-    if(th==='dark'){
-      isDark=true;document.documentElement.setAttribute('data-theme','dark');
-      document.getElementById('ti').innerHTML='&#9790;';document.getElementById('tl').textContent='มืด';
+function loadLocal() {
+  try {
+    var th = localStorage.getItem(LS_THEME);
+    if (th === 'dark' || (!th && window.matchMedia && window.matchMedia('(prefers-color-scheme:dark)').matches)) {
+      isDark = true;
+      document.documentElement.setAttribute('data-theme','dark');
+      document.getElementById('ti').innerHTML   = '&#9790;';
+      document.getElementById('tl').textContent = 'มืด';
     }
-    // entries
-    var raw=localStorage.getItem(LS_ENTRIES);
-    if(raw)entries=JSON.parse(raw);
+    var raw = localStorage.getItem(LS_ENTRIES);
+    if (raw) entries = JSON.parse(raw);
     renderLog();
-    // daily
-    var ds=localStorage.getItem(LS_DAILY);
-    if(ds){
-      var d=JSON.parse(ds);
-      // reset daily if saved date != today
-      var today=new Date().toDateString();
-      var savedDate=localStorage.getItem('gtj_date');
-      if(savedDate!==today){
-        dailyPnl=0;dailyTrades=0;dailyWins=0;dailyLosses=0;consLoss=0;
-        localStorage.setItem('gtj_date',today);
-      } else {
-        dailyPnl=d.dailyPnl||0;dailyTrades=d.dailyTrades||0;
-        dailyWins=d.dailyWins||0;dailyLosses=d.dailyLosses||0;consLoss=d.consLoss||0;
-      }
+    var today = new Date().toDateString();
+    var saved = localStorage.getItem(LS_DATE);
+    if (saved !== today) {
+      dailyPnl=0; dailyTrades=0; dailyWins=0; dailyLosses=0; consLoss=0;
+      localStorage.setItem(LS_DATE, today);
     } else {
-      localStorage.setItem('gtj_date',new Date().toDateString());
+      var ds = localStorage.getItem(LS_DAILY);
+      if (ds) {
+        var d = JSON.parse(ds);
+        dailyPnl=d.dailyPnl||0; dailyTrades=d.dailyTrades||0;
+        dailyWins=d.dailyWins||0; dailyLosses=d.dailyLosses||0; consLoss=d.consLoss||0;
+      }
     }
     updateHS();
-    // monthly settings
-    var ms=localStorage.getItem(LS_MONTHLY);
-    if(ms){
-      var m=JSON.parse(ms);
-      if(m.target)document.getElementById('mt-target').value=m.target;
-      if(m.fx)document.getElementById('mt-fx').value=m.fx;
-      if(m.cur)document.getElementById('mt-cur').value=m.cur;
+    var ms = localStorage.getItem(LS_MONTHLY);
+    if (ms) {
+      var m = JSON.parse(ms);
+      if (m.target) document.getElementById('mt-target').value = m.target;
+      if (m.fx)     document.getElementById('mt-fx').value     = m.fx;
+      if (m.cur)    document.getElementById('mt-cur').value    = m.cur;
     }
-  }catch(e){}
+  } catch(err) {}
 }
 
-// patch functions to auto-save
-var _origAddPnl=addPnl;
-addPnl=function(){_origAddPnl();saveAll();};
-
-var _origSaveEntry=saveEntry;
-saveEntry=function(){_origSaveEntry();saveAll();};
-
-var _origCalcMonthly=calcMonthly;
-calcMonthly=function(){_origCalcMonthly();saveAll();};
-
-var _origToggleTheme=toggleTheme;
-toggleTheme=function(){
-  _origToggleTheme();
-  try{localStorage.setItem(LS_THEME,isDark?'dark':'light');}catch(e){}
-};
-
-// ── Init ──────────────────────────────────
-loadAll();
-calcLot();renderCL();calcMonthly();
-if(!localStorage.getItem(LS_THEME)){
-  if(window.matchMedia&&window.matchMedia('(prefers-color-scheme:dark)').matches){
-    isDark=true;document.documentElement.setAttribute('data-theme','dark');
-    document.getElementById('ti').innerHTML='&#9790;';document.getElementById('tl').textContent='มืด';
-  }
+// ─── Google Sheets ────────────────────────
+function setSyncUI(state, msg) {
+  var bar = document.getElementById('sync-bar');
+  var dot = document.getElementById('sync-dot');
+  var txt = document.getElementById('sync-txt');
+  if (!bar) return;
+  var colors = { ok:'var(--gn)', err:'var(--rd)', loading:'var(--bl)' };
+  var bgs    = { ok:'var(--gnb)', err:'var(--rdb)', loading:'var(--blb)' };
+  bar.style.background = bgs[state]    || bgs.loading;
+  bar.style.color      = colors[state] || colors.loading;
+  dot.style.background = colors[state] || colors.loading;
+  txt.textContent      = msg;
 }
-// โหลดข้อมูลจาก Google Sheets หลัง init
-setTimeout(function(){loadFromSheet();},500);
+function sendToSheet(e) {
+  setSyncUI('loading', 'กำลังบันทึกลง Google Sheets...');
+  fetch(SHEET_URL, {
+    method: 'POST',
+    body: JSON.stringify({
+      action:'save', date:e.date, time:e.time,
+      dir:e.dir, result:e.res, entry:e.entry,
+      pnl:e.pnl, emotion:e.emo, reason:e.reason, learn:e.learn
+    })
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(d) {
+    if (d.status === 'ok') setSyncUI('ok', 'บันทึกลง Google Sheets สำเร็จ ✓');
+    else setSyncUI('err', 'บันทึกไม่สำเร็จ — ข้อมูลเก็บใน localStorage แทน');
+  })
+  .catch(function() { setSyncUI('err', 'ไม่มีอินเตอร์เน็ต — ข้อมูลเก็บใน localStorage แทน'); });
+}
+function loadFromSheet() {
+  setSyncUI('loading', 'กำลังโหลดข้อมูลจาก Google Sheets...');
+  fetch(SHEET_URL)
+  .then(function(r) { return r.json(); })
+  .then(function(d) {
+    if (d.status === 'ok' && d.rows && d.rows.length > 1) {
+      var rows = d.rows.slice(1).reverse();
+      entries = rows.map(function(r) {
+        return {
+          date:   String(r[0] || ''),
+          time:   String(r[1] || ''),
+          dir:    String(r[2] || ''),
+          res:    String(r[3] || ''),
+          entry:  String(r[4] || ''),
+          pnl:    String(r[5] || ''),
+          emo:    String(r[6] || '-'),
+          reason: String(r[7] || ''),
+          learn:  String(r[8] || '')
+        };
+      });
+      saveLocal();
+      renderLog();
+      setSyncUI('ok', 'โหลดข้อมูลจาก Google Sheets สำเร็จ — ' + entries.length + ' รายการ');
+    } else {
+      setSyncUI('ok', 'เชื่อมต่อ Google Sheets แล้ว — ยังไม่มีข้อมูล');
+    }
+  })
+  .catch(function() {
+    setSyncUI('err', 'ไม่สามารถเชื่อมต่อ Google Sheets — ใช้ข้อมูล localStorage แทน');
+  });
+}
+
+// ─── Init ─────────────────────────────────
+loadLocal();
+calcLot();
+renderCL();
+calcMonthly();
+setTimeout(function() { loadFromSheet(); }, 500);
 </script>
 </body>
 </html>
