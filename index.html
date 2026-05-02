@@ -531,7 +531,7 @@ function calcMonthly() {
 }
 function syncPnl() { document.getElementById('mt-cur').value = dailyPnl.toFixed(2); calcMonthly(); }
 
-// ─── localStorage ─────────────────────────
+// ─── localStorage (save only) ─────────────
 function saveLocal() {
   try {
     localStorage.setItem(LS_ENTRIES, JSON.stringify(entries));
@@ -544,41 +544,6 @@ function saveLocal() {
       fx:     document.getElementById('mt-fx').value,
       cur:    document.getElementById('mt-cur').value
     }));
-  } catch(err) {}
-}
-function loadLocal() {
-  try {
-    var th = localStorage.getItem(LS_THEME);
-    if (th === 'dark' || (!th && window.matchMedia && window.matchMedia('(prefers-color-scheme:dark)').matches)) {
-      isDark = true;
-      document.documentElement.setAttribute('data-theme','dark');
-      document.getElementById('ti').innerHTML   = '&#9790;';
-      document.getElementById('tl').textContent = 'มืด';
-    }
-    var raw = localStorage.getItem(LS_ENTRIES);
-    if (raw) entries = JSON.parse(raw);
-    renderLog();
-    var today = new Date().toDateString();
-    var saved = localStorage.getItem(LS_DATE);
-    if (saved !== today) {
-      dailyPnl=0; dailyTrades=0; dailyWins=0; dailyLosses=0; consLoss=0;
-      localStorage.setItem(LS_DATE, today);
-    } else {
-      var ds = localStorage.getItem(LS_DAILY);
-      if (ds) {
-        var d = JSON.parse(ds);
-        dailyPnl=d.dailyPnl||0; dailyTrades=d.dailyTrades||0;
-        dailyWins=d.dailyWins||0; dailyLosses=d.dailyLosses||0; consLoss=d.consLoss||0;
-      }
-    }
-    updateHS();
-    var ms = localStorage.getItem(LS_MONTHLY);
-    if (ms) {
-      var m = JSON.parse(ms);
-      if (m.target) document.getElementById('mt-target').value = m.target;
-      if (m.fx)     document.getElementById('mt-fx').value     = m.fx;
-      if (m.cur)    document.getElementById('mt-cur').value    = m.cur;
-    }
   } catch(err) {}
 }
 
@@ -640,16 +605,68 @@ function loadFromSheet() {
     }
   })
   .catch(function() {
-    setSyncUI('err', 'ไม่สามารถเชื่อมต่อ Google Sheets — ใช้ข้อมูล localStorage แทน');
+    // Sheets ล้มเหลว — ใช้ localStorage เป็น fallback
+    setSyncUI('err', 'ไม่สามารถเชื่อมต่อ Google Sheets — ใช้ข้อมูลในเครื่องแทน');
+    loadLocalEntries();
+    renderLog();
   });
 }
 
+// โหลดเฉพาะ entries จาก localStorage (fallback เมื่อ Sheets ใช้ไม่ได้)
+function loadLocalEntries() {
+  try {
+    var raw = localStorage.getItem(LS_ENTRIES);
+    if (raw) entries = JSON.parse(raw);
+  } catch(err) {}
+}
+
 // ─── Init ─────────────────────────────────
-loadLocal();
-calcLot();
-renderCL();
-calcMonthly();
-setTimeout(function() { loadFromSheet(); }, 500);
+// โหลด daily stats + settings จาก localStorage ก่อน (ไม่มี network delay)
+// แต่โหลด entries จาก Sheets เป็นหลัก เพื่อให้ข้อมูลตรงกันทุกอุปกรณ์
+function init() {
+  try {
+    // theme
+    var th = localStorage.getItem(LS_THEME);
+    if (th === 'dark' || (!th && window.matchMedia && window.matchMedia('(prefers-color-scheme:dark)').matches)) {
+      isDark = true;
+      document.documentElement.setAttribute('data-theme','dark');
+      document.getElementById('ti').innerHTML   = '&#9790;';
+      document.getElementById('tl').textContent = 'มืด';
+    }
+    // daily stats — reset ถ้าเป็นวันใหม่
+    var today = new Date().toDateString();
+    var saved = localStorage.getItem(LS_DATE);
+    if (saved !== today) {
+      dailyPnl=0; dailyTrades=0; dailyWins=0; dailyLosses=0; consLoss=0;
+      localStorage.setItem(LS_DATE, today);
+    } else {
+      var ds = localStorage.getItem(LS_DAILY);
+      if (ds) {
+        var d = JSON.parse(ds);
+        dailyPnl=d.dailyPnl||0; dailyTrades=d.dailyTrades||0;
+        dailyWins=d.dailyWins||0; dailyLosses=d.dailyLosses||0; consLoss=d.consLoss||0;
+      }
+    }
+    updateHS();
+    // monthly settings
+    var ms = localStorage.getItem(LS_MONTHLY);
+    if (ms) {
+      var m = JSON.parse(ms);
+      if (m.target) document.getElementById('mt-target').value = m.target;
+      if (m.fx)     document.getElementById('mt-fx').value     = m.fx;
+      if (m.cur)    document.getElementById('mt-cur').value    = m.cur;
+    }
+  } catch(err) {}
+
+  calcLot();
+  renderCL();
+  calcMonthly();
+
+  // โหลด entries จาก Sheets ก่อนเสมอ — ไม่ใช้ setTimeout อีกต่อไป
+  loadFromSheet();
+}
+
+init();
 </script>
 </body>
 </html>
