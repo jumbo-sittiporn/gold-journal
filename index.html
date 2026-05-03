@@ -300,7 +300,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
 <script>
 // ─── Config ───────────────────────────────
-var URL = 'https://script.google.com/macros/s/AKfycbzYLEgGC51KRDHjuhqkLxyWqOPejJ9q9DZBBfqIyIKPzFPeyRfJeBO2w68wxSrBWaRiIQ/exec';
+var URL = 'https://script.google.com/macros/s/AKfycbykzxbJW2ZeuNzMkHEs9UPrT1WIdPDoLjkoUlHrbiMnGfjS8r_Rxx7wFdK5fgxk0he_Pg/exec';
 
 // ─── State ────────────────────────────────
 var isDark = false, emoTxt = '';
@@ -402,7 +402,8 @@ function updateHS() {
   }
 }
 function saveDaily() {
-  sheetPost({action:'saveDaily', pnl:dailyPnl, trades:dailyTrades, wins:dailyWins, losses:dailyLosses, consloss:consLoss});
+  var today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+  sheetPost({action:'saveDaily', date:today, pnl:dailyPnl, trades:dailyTrades, wins:dailyWins, losses:dailyLosses, consloss:consLoss});
 }
 function resetDay() {
   if (!confirm('รีเซ็ตข้อมูลวันใหม่?')) return;
