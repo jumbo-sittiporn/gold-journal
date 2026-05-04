@@ -136,8 +136,19 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <div class="sbox"><div class="snum" id="hs-pnl">$0</div><div class="slbl">P&amp;L วันนี้</div></div>
   </div>
   <div class="hsbar safe" id="hs-bar">สถานะ: เทรดได้ปกติ</div>
-  <p style="font-size:12px;color:var(--t3);text-align:center;margin-bottom:10px">อัปเดตอัตโนมัติเมื่อบันทึกเทรดในแท็บ "บันทึกเทรด"</p>
-  <div class="resetrow"><button class="resetbtn" onclick="resetDay()">&#8635; รีเซ็ตวันใหม่</button></div>
+  <div class="fl" style="margin-bottom:10px">
+    <label>P&amp;L เทรดล่าสุด ($) — ใส่ + หรือ - ระบบจะตัดสินผลให้อัตโนมัติ</label>
+    <div style="display:flex;gap:8px">
+      <input type="number" id="pnl-input" placeholder="เช่น -25 หรือ +40" step="1" inputmode="decimal"
+        style="flex:1" oninput="previewPnl()" onkeydown="if(event.key==='Enter')addPnl()">
+      <button class="btn btnp" onclick="addPnl()">+ บันทึก</button>
+    </div>
+  </div>
+  <div id="pnl-preview" style="font-size:12px;color:var(--t3);margin-bottom:14px;min-height:18px"></div>
+  <div style="display:flex;gap:8px;margin-bottom:14px">
+    <button class="btn btnp" onclick="addPnl()" style="flex:1">+ บันทึก</button>
+    <button class="btn" onclick="resetDay()">&#8635; รีเซ็ตวันใหม่</button>
+  </div>
   <hr class="hr">
   <span class="slabel">กฎ Hard Stop ประจำวัน</span>
   <div class="card cdanger"><span class="badge bdr">หยุดทันที</span><div class="rtitle">เสียเกิน $50 ต่อวัน → หยุดเทรดทันที</div><div class="rdesc">ไม่มีข้อยกเว้น ไม่ว่าจะรู้สึกว่า "เดี๋ยวได้คืน" แค่ไหน สมองอยู่ในโหมด revenge แล้ว</div></div>
@@ -415,6 +426,25 @@ function updateHS() {
 function saveDaily() {
   var today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
   sheetPost({action:'saveDaily', date:today, pnl:dailyPnl, trades:dailyTrades, wins:dailyWins, losses:dailyLosses, consloss:consLoss});
+}
+function previewPnl() {
+  var v = parseFloat(document.getElementById('pnl-input').value);
+  var el = document.getElementById('pnl-preview');
+  if (isNaN(v) || document.getElementById('pnl-input').value === '') { el.textContent=''; return; }
+  if (v > 0) { el.style.color='var(--gn)'; el.textContent='Win +$'+v; }
+  else if (v < 0) { el.style.color='var(--rd)'; el.textContent='Loss -$'+Math.abs(v); }
+  else { el.style.color='var(--t3)'; el.textContent='Breakeven'; }
+}
+function addPnl() {
+  var v = parseFloat(document.getElementById('pnl-input').value);
+  if (isNaN(v)) return;
+  dailyPnl += v; dailyTrades++;
+  if (v > 0)      { dailyWins++;   consLoss=0; }
+  else if (v < 0) { dailyLosses++; consLoss++; }
+  else            { consLoss=0; }
+  document.getElementById('pnl-input').value = '';
+  document.getElementById('pnl-preview').textContent = '';
+  updateHS(); saveDaily();
 }
 function resetDay() {
   if (!confirm('รีเซ็ตข้อมูลวันใหม่?')) return;
