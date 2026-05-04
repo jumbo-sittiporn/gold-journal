@@ -97,6 +97,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .spinner{width:32px;height:32px;border:3px solid var(--bd);border-top-color:var(--bl);border-radius:50%;animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 .loading-txt{font-size:14px;color:var(--t2)}
+.logactions{display:flex;gap:6px;margin-top:8px}
+.logbtn{padding:4px 10px;font-size:11px;border-radius:var(--rm);cursor:pointer;border:0.5px solid var(--bd);background:var(--bg2);color:var(--t2)}
+.logbtn.edit:hover{background:var(--blb);color:var(--bl);border-color:var(--bl)}
+.logbtn.del:hover{background:var(--rdb);color:var(--rd);border-color:var(--rd)}
 @media(max-width:400px){.r2{grid-template-columns:1fr}.snum{font-size:18px}}
 </style>
 </head>
@@ -168,23 +172,30 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   <span class="slabel">บันทึกเทรด</span>
   <div class="card">
     <div class="eform">
-      <div class="r2">
-        <div class="fl"><label>ทิศทาง</label><select id="j-dir"><option>BUY</option><option>SELL</option></select></div>
-        <div class="fl"><label>ผลลัพธ์</label><select id="j-res"><option>Win</option><option>Loss</option><option>Breakeven</option></select></div>
+      <div class="fl">
+        <label>ทิศทาง</label>
+        <div class="erow">
+          <button class="ebtn sel" id="jd-buy" onclick="selDir('BUY')">BUY</button>
+          <button class="ebtn" id="jd-sell" onclick="selDir('SELL')">SELL</button>
+        </div>
       </div>
       <div class="r2">
         <div class="fl"><label>ราคาเข้า</label><input type="number" id="j-entry" placeholder="เช่น 3320.50" step="0.01" inputmode="decimal"></div>
-        <div class="fl"><label>P&amp;L ($)</label><input type="number" id="j-pnl" placeholder="เช่น +35 หรือ -20" step="1" inputmode="decimal"></div>
+        <div class="fl">
+          <label>P&amp;L ($)</label>
+          <input type="number" id="j-pnl" placeholder="เช่น +35 หรือ -20" step="1" inputmode="decimal" oninput="previewJPnl()">
+          <div id="j-pnl-preview" style="font-size:12px;margin-top:4px;min-height:16px"></div>
+        </div>
       </div>
       <div class="fl">
-        <label>อารมณ์ก่อนเทรด</label>
+        <label>อารมณ์ก่อนเทรด (เลือกได้หลายอย่าง)</label>
         <div class="erow">
-          <button class="ebtn" onclick="selEmo(this)">สงบ</button>
-          <button class="ebtn" onclick="selEmo(this)">มั่นใจ</button>
-          <button class="ebtn" onclick="selEmo(this)">กังวล</button>
-          <button class="ebtn" onclick="selEmo(this)">โลภ</button>
-          <button class="ebtn" onclick="selEmoR(this)">โกรธ/หัวร้อน</button>
-          <button class="ebtn" onclick="selEmoR(this)">revenge</button>
+          <button class="ebtn" onclick="toggleEmo(this)">สงบ</button>
+          <button class="ebtn" onclick="toggleEmo(this)">มั่นใจ</button>
+          <button class="ebtn" onclick="toggleEmo(this)">กังวล</button>
+          <button class="ebtn" onclick="toggleEmo(this)">โลภ</button>
+          <button class="ebtn" onclick="toggleEmoR(this)">โกรธ/หัวร้อน</button>
+          <button class="ebtn" onclick="toggleEmoR(this)">revenge</button>
         </div>
       </div>
       <div class="fl"><label>เหตุผลที่เข้า (ตามแผน / นอกแผน?)</label><textarea id="j-reason" placeholder="เช่น ราคา pullback มาแตะ EMA50 ในแนวโน้มขาขึ้น"></textarea></div>
@@ -197,10 +208,74 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 <!-- TAB 3: LOG -->
 <div id="tab-log" class="panel">
   <span class="slabel">ประวัติเทรด</span>
-  <div style="display:flex;justify-content:flex-end;margin-bottom:8px">
+  <!-- Filter bar -->
+  <div class="card" style="margin-bottom:10px;padding:10px 14px">
+    <div class="erow" style="margin-bottom:8px">
+      <button class="ebtn sel" onclick="setFilter('all',this)">ทั้งหมด</button>
+      <button class="ebtn" onclick="setFilter('today',this)">วันนี้</button>
+      <button class="ebtn" onclick="setFilter('week',this)">สัปดาห์นี้</button>
+      <button class="ebtn" onclick="setFilter('month',this)">เดือนนี้</button>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <div class="fl" style="flex:1;margin:0">
+        <input type="date" id="log-date-from" onchange="renderLog()" style="font-size:13px;padding:6px 10px">
+      </div>
+      <span style="font-size:12px;color:var(--t3)">ถึง</span>
+      <div class="fl" style="flex:1;margin:0">
+        <input type="date" id="log-date-to" onchange="renderLog()" style="font-size:13px;padding:6px 10px">
+      </div>
+      <button class="resetbtn" onclick="clearDateFilter()" style="white-space:nowrap">ล้าง</button>
+    </div>
+  </div>
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+    <span id="log-count" style="font-size:12px;color:var(--t3)"></span>
     <button class="resetbtn" onclick="loadTrades()">&#8635; รีเฟรช</button>
   </div>
   <div id="log-list"><div class="empty">กำลังโหลด...</div></div>
+</div>
+
+<!-- EDIT MODAL -->
+<div id="edit-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:999;align-items:center;justify-content:center;padding:16px">
+  <div style="background:var(--bg1);border-radius:var(--rl);padding:20px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <span style="font-size:15px;font-weight:700">แก้ไขเทรด</span>
+      <button onclick="closeEdit()" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--t2)">&#10005;</button>
+    </div>
+    <div class="eform">
+      <div class="fl">
+        <label>ทิศทาง</label>
+        <div class="erow">
+          <button class="ebtn sel" id="ed-buy" onclick="selEditDir('BUY')">BUY</button>
+          <button class="ebtn" id="ed-sell" onclick="selEditDir('SELL')">SELL</button>
+        </div>
+      </div>
+      <div class="r2">
+        <div class="fl"><label>ราคาเข้า</label><input type="number" id="ed-entry" step="0.01" inputmode="decimal"></div>
+        <div class="fl">
+          <label>P&amp;L ($)</label>
+          <input type="number" id="ed-pnl" step="1" inputmode="decimal" oninput="previewEditPnl()">
+          <div id="ed-pnl-preview" style="font-size:12px;margin-top:4px;min-height:16px"></div>
+        </div>
+      </div>
+      <div class="fl">
+        <label>อารมณ์</label>
+        <div class="erow" id="ed-emo-row">
+          <button class="ebtn" onclick="toggleEditEmo(this)">สงบ</button>
+          <button class="ebtn" onclick="toggleEditEmo(this)">มั่นใจ</button>
+          <button class="ebtn" onclick="toggleEditEmo(this)">กังวล</button>
+          <button class="ebtn" onclick="toggleEditEmo(this)">โลภ</button>
+          <button class="ebtn" onclick="toggleEditEmoR(this)">โกรธ/หัวร้อน</button>
+          <button class="ebtn" onclick="toggleEditEmoR(this)">revenge</button>
+        </div>
+      </div>
+      <div class="fl"><label>เหตุผลที่เข้า</label><textarea id="ed-reason" style="min-height:60px"></textarea></div>
+      <div class="fl"><label>สิ่งที่เรียนรู้</label><textarea id="ed-learn" style="min-height:60px"></textarea></div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btnp" onclick="saveEdit()" style="flex:1">บันทึกการแก้ไข</button>
+        <button class="btn" style="color:var(--rd);border-color:var(--rd)" onclick="confirmDelete()">ลบ</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- TAB 4: SUMMARY -->
@@ -322,10 +397,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
 <script>
 // ─── Config ───────────────────────────────
-var URL = 'https://script.google.com/macros/s/AKfycbySlwCan9V8bgAMrgdrXJVfsWViAn2mNUBW1tQRySVJMhmJbYEXuro0xDnjvwpc0XPXoA/exec';
+var URL = 'https://script.google.com/macros/s/AKfycbzQTEz5oY9NdrYZlUkuA_MzLZV9beFu_MQ3X3BD5CHI6-vAmOIMCK3u_YQvrEJ9fRd2jQ/exec';
 
 // ─── State ────────────────────────────────
-var isDark = false, emoTxt = '';
+var isDark = false;
 var entries = [];
 var dailyPnl = 0, dailyTrades = 0, dailyWins = 0, dailyLosses = 0, consLoss = 0;
 var CL = [
@@ -342,10 +417,17 @@ var CL = [
 
 // ─── Sheets API ───────────────────────────
 function sheetGet(action) {
-  return fetch(URL + '?action=' + action).then(function(r){ return r.json(); });
+  return fetch(URL + '?action=' + action, {
+    method: 'GET',
+    redirect: 'follow'
+  }).then(function(r) { return r.json(); });
 }
 function sheetPost(data) {
-  return fetch(URL, {method:'POST', body:JSON.stringify(data)}).then(function(r){ return r.json(); });
+  return fetch(URL, {
+    method: 'POST',
+    redirect: 'follow',
+    body: JSON.stringify(data)
+  }).then(function(r) { return r.json(); });
 }
 
 // ─── Sync UI ──────────────────────────────
@@ -397,13 +479,21 @@ function showTab(t, btn) {
 }
 
 // ─── Emotion ──────────────────────────────
-function selEmo(btn) {
-  document.querySelectorAll('.ebtn').forEach(function(b){ b.classList.remove('sel','selr'); });
-  btn.classList.add('sel'); emoTxt = btn.textContent.trim();
+function toggleEmo(btn) {
+  btn.classList.toggle('sel');
 }
-function selEmoR(btn) {
+function toggleEmoR(btn) {
+  btn.classList.toggle('selr');
+}
+function getEmoText() {
+  var selected = [];
+  document.querySelectorAll('.ebtn.sel, .ebtn.selr').forEach(function(b){
+    selected.push(b.textContent.trim());
+  });
+  return selected.length > 0 ? selected.join(', ') : '-';
+}
+function resetEmo() {
   document.querySelectorAll('.ebtn').forEach(function(b){ b.classList.remove('sel','selr'); });
-  btn.classList.add('selr'); emoTxt = btn.textContent.trim();
 }
 
 // ─── Hard Stop ────────────────────────────
@@ -478,21 +568,41 @@ function monthKey(iso) {
   return iso.substring(0,7); // 2026-05
 }
 
+var selectedDir = 'BUY';
+function selDir(val) {
+  selectedDir = val;
+  document.getElementById('jd-buy').className  = 'ebtn' + (val==='BUY'  ? ' sel' : '');
+  document.getElementById('jd-sell').className = 'ebtn' + (val==='SELL' ? ' selr' : '');
+}
+function previewJPnl() {
+  var v = parseFloat(document.getElementById('j-pnl').value);
+  var el = document.getElementById('j-pnl-preview');
+  if (isNaN(v) || document.getElementById('j-pnl').value==='') { el.textContent=''; return; }
+  if (v > 0)      { el.style.color='var(--gn)'; el.textContent='Win +$'+v; }
+  else if (v < 0) { el.style.color='var(--rd)'; el.textContent='Loss -$'+Math.abs(v); }
+  else            { el.style.color='var(--t3)'; el.textContent='Breakeven'; }
+}
+function autoResult(v) {
+  if (v > 0) return 'Win';
+  if (v < 0) return 'Loss';
+  return 'Breakeven';
+}
+
 // ─── Journal ──────────────────────────────
 function saveEntry() {
   var pnlVal = parseFloat(document.getElementById('j-pnl').value) || 0;
-  var resVal = document.getElementById('j-res').value;
+  var resVal = autoResult(pnlVal);
   var now    = new Date();
   var e = {
     date:   isoDate(now),
     time:   now.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'}),
-    dir:    document.getElementById('j-dir').value,
+    dir:    selectedDir,
     res:    resVal,
     entry:  document.getElementById('j-entry').value,
     pnl:    document.getElementById('j-pnl').value,
     reason: document.getElementById('j-reason').value,
     learn:  document.getElementById('j-learn').value,
-    emo:    emoTxt || '-'
+    emo:    getEmoText()
   };
   // อัปเดต Hard Stop
   dailyPnl += pnlVal; dailyTrades++;
@@ -502,7 +612,9 @@ function saveEntry() {
   updateHS();
   // เคลียร์ฟอร์ม
   ['j-entry','j-pnl','j-reason','j-learn'].forEach(function(id){ document.getElementById(id).value=''; });
-  emoTxt=''; document.querySelectorAll('.ebtn').forEach(function(b){ b.classList.remove('sel','selr'); });
+  document.getElementById('j-pnl-preview').textContent = '';
+  resetEmo();
+  selDir('BUY');
   // บันทึกลง Sheets
   setSyncUI('loading','กำลังบันทึกลง Google Sheets...');
   document.getElementById('save-btn').disabled = true;
@@ -524,7 +636,41 @@ function saveEntry() {
   showTab('log', document.querySelectorAll('.tab')[2]);
 }
 
-// ─── Log ──────────────────────────────────
+// ─── Log filter ───────────────────────────
+var currentFilter = 'all';
+function setFilter(f, btn) {
+  currentFilter = f;
+  document.querySelectorAll('#tab-log .ebtn').forEach(function(b){ b.classList.remove('sel'); });
+  btn.classList.add('sel');
+  document.getElementById('log-date-from').value = '';
+  document.getElementById('log-date-to').value   = '';
+  renderLog();
+}
+function clearDateFilter() {
+  document.getElementById('log-date-from').value = '';
+  document.getElementById('log-date-to').value   = '';
+  renderLog();
+}
+function getFilteredEntries() {
+  var now   = new Date(), today = isoDate(now);
+  var dow   = now.getDay()===0?6:now.getDay()-1;
+  var mon   = new Date(now); mon.setDate(now.getDate()-dow);
+  var weekStart  = isoDate(mon);
+  var monthStart = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-01';
+  var from = document.getElementById('log-date-from').value;
+  var to   = document.getElementById('log-date-to').value;
+  return entries.filter(function(e) {
+    var d = e.date||'';
+    if (from && d < from) return false;
+    if (to   && d > to)   return false;
+    if (currentFilter==='today') return d===today;
+    if (currentFilter==='week')  return d>=weekStart && d<=today;
+    if (currentFilter==='month') return d>=monthStart && d<=today;
+    return true;
+  });
+}
+
+// ─── Log render ───────────────────────────
 function loadTrades() {
   document.getElementById('log-list').innerHTML = '<div class="empty">กำลังโหลด...</div>';
   sheetGet('getTrades')
@@ -535,19 +681,22 @@ function loadTrades() {
           res:String(r[3]||''),entry:String(r[4]||''),pnl:String(r[5]||''),
           emo:String(r[6]||'-'),reason:String(r[7]||''),learn:String(r[8]||'')};
       });
-      renderLog();
-      buildMonthDropdown();
-      calcMonthly();
+      renderLog(); buildMonthDropdown(); calcMonthly();
     }
   })
   .catch(function(){ document.getElementById('log-list').innerHTML='<div class="empty">โหลดไม่ได้ — ตรวจสอบอินเตอร์เน็ต</div>'; });
 }
 function renderLog() {
-  var el = document.getElementById('log-list');
-  if (!entries.length) { el.innerHTML='<div class="empty">ยังไม่มีบันทึก</div>'; return; }
-  el.innerHTML = entries.map(function(e) {
+  var el   = document.getElementById('log-list');
+  var list = getFilteredEntries();
+  var cntEl = document.getElementById('log-count');
+  if (cntEl) cntEl.textContent = list.length+' รายการ';
+  if (!list.length) { el.innerHTML='<div class="empty">ไม่มีข้อมูลในช่วงที่เลือก</div>'; return; }
+  el.innerHTML = list.map(function(e) {
+    var origIdx  = entries.indexOf(e);
+    var sheetRow = entries.length-1-origIdx;
     var pn=parseFloat(e.pnl), ps=e.pnl?(pn>=0?'+':'')+e.pnl+'$':'-';
-    var ir=e.emo==='revenge'||e.emo==='โกรธ/หัวร้อน';
+    var ir=e.emo&&(e.emo.indexOf('revenge')>=0||e.emo.indexOf('โกรธ')>=0);
     var rc=e.res==='Win'?'win':e.res==='Loss'?'loss':'be';
     return '<div class="logitem">'
       +'<div class="loghd"><span class="logdir">'+displayDate(e.date||'')+' '+(e.time||'')+'&nbsp;&nbsp;'+(e.dir||'')+'</span>'
@@ -555,8 +704,113 @@ function renderLog() {
       +'<div class="logemo">อารมณ์: <span class="'+(ir?'logrev':'')+'">'+e.emo+'</span></div>'
       +(e.reason?'<div class="lognote">เหตุผล: '+e.reason+'</div>':'')
       +(e.learn?'<div class="lognote">เรียนรู้: '+e.learn+'</div>':'')
-      +'</div>';
+      +'<div class="logactions">'
+      +'<button class="logbtn edit" onclick="openEdit('+origIdx+','+sheetRow+')">&#9998; แก้ไข</button>'
+      +'<button class="logbtn del" onclick="quickDelete('+origIdx+','+sheetRow+')">&#10005; ลบ</button>'
+      +'</div></div>';
   }).join('');
+}
+
+// ─── Edit / Delete ────────────────────────
+var editOrigIdx=-1, editSheetRow=-1;
+function openEdit(origIdx, sheetRow) {
+  editOrigIdx=origIdx; editSheetRow=sheetRow;
+  var e=entries[origIdx];
+  selEditDir(e.dir||'BUY');
+  document.getElementById('ed-entry').value  = e.entry  ||'';
+  document.getElementById('ed-pnl').value    = e.pnl    ||'';
+  document.getElementById('ed-reason').value = e.reason ||'';
+  document.getElementById('ed-learn').value  = e.learn  ||'';
+  previewEditPnl();
+  var emoList=(e.emo||'').split(',').map(function(x){return x.trim();});
+  document.getElementById('ed-emo-row').querySelectorAll('.ebtn').forEach(function(b){
+    b.classList.remove('sel','selr');
+    var txt=b.textContent.trim();
+    if (emoList.indexOf(txt)>=0) {
+      if (txt==='revenge'||txt==='โกรธ/หัวร้อน') b.classList.add('selr');
+      else b.classList.add('sel');
+    }
+  });
+  document.getElementById('edit-modal').style.display='flex';
+}
+function closeEdit() {
+  document.getElementById('edit-modal').style.display='none';
+  editOrigIdx=-1; editSheetRow=-1;
+}
+function selEditDir(val) {
+  document.getElementById('ed-buy').className  ='ebtn'+(val==='BUY' ?' sel':'');
+  document.getElementById('ed-sell').className ='ebtn'+(val==='SELL'?' selr':'');
+}
+function getEditDir() {
+  return document.getElementById('ed-buy').classList.contains('sel')?'BUY':'SELL';
+}
+function previewEditPnl() {
+  var v=parseFloat(document.getElementById('ed-pnl').value);
+  var el=document.getElementById('ed-pnl-preview');
+  if(isNaN(v)){el.textContent='';return;}
+  if(v>0){el.style.color='var(--gn)';el.textContent='Win +$'+v;}
+  else if(v<0){el.style.color='var(--rd)';el.textContent='Loss -$'+Math.abs(v);}
+  else{el.style.color='var(--t3)';el.textContent='Breakeven';}
+}
+function toggleEditEmo(btn){btn.classList.toggle('sel');}
+function toggleEditEmoR(btn){btn.classList.toggle('selr');}
+function getEditEmo() {
+  var sel=[];
+  document.getElementById('ed-emo-row').querySelectorAll('.ebtn.sel,.ebtn.selr').forEach(function(b){
+    sel.push(b.textContent.trim());
+  });
+  return sel.length>0?sel.join(', '):'-';
+}
+function saveEdit() {
+  if(editOrigIdx<0)return;
+  var pnlVal=parseFloat(document.getElementById('ed-pnl').value)||0;
+  var updated={
+    date:entries[editOrigIdx].date, time:entries[editOrigIdx].time,
+    dir:getEditDir(), result:autoResult(pnlVal),
+    entry:document.getElementById('ed-entry').value,
+    pnl:document.getElementById('ed-pnl').value,
+    emotion:getEditEmo(),
+    reason:document.getElementById('ed-reason').value,
+    learn:document.getElementById('ed-learn').value
+  };
+  sheetPost({
+    action:'updateTrade', rowIndex:editSheetRow,
+    date:updated.date, time:updated.time,
+    dir:updated.dir, result:updated.result,
+    entry:updated.entry, pnl:updated.pnl,
+    emotion:updated.emotion, reason:updated.reason, learn:updated.learn
+  })
+  .then(function(d){
+    if(d.status==='ok'){
+      var e=entries[editOrigIdx];
+      e.dir=updated.dir; e.res=updated.result; e.entry=updated.entry;
+      e.pnl=updated.pnl; e.emo=updated.emotion; e.reason=updated.reason; e.learn=updated.learn;
+      closeEdit(); renderLog(); buildMonthDropdown(); calcMonthly();
+    } else { alert('แก้ไขไม่สำเร็จ กรุณาลองใหม่'); }
+  })
+  .catch(function(){alert('ไม่มีอินเตอร์เน็ต');});
+}
+function confirmDelete() {
+  if(!confirm('ลบเทรดนี้? ไม่สามารถกู้คืนได้'))return;
+  sheetPost({action:'deleteTrade', rowIndex:editSheetRow})
+  .then(function(d){
+    if(d.status==='ok'){
+      entries.splice(editOrigIdx,1);
+      closeEdit(); renderLog(); buildMonthDropdown(); calcMonthly();
+    } else { alert('ลบไม่สำเร็จ กรุณาลองใหม่'); }
+  })
+  .catch(function(){alert('ไม่มีอินเตอร์เน็ต');});
+}
+function quickDelete(origIdx, sheetRow) {
+  if(!confirm('ลบเทรดนี้? ไม่สามารถกู้คืนได้'))return;
+  sheetPost({action:'deleteTrade', rowIndex:sheetRow})
+  .then(function(d){
+    if(d.status==='ok'){
+      entries.splice(origIdx,1);
+      renderLog(); buildMonthDropdown(); calcMonthly();
+    } else { alert('ลบไม่สำเร็จ กรุณาลองใหม่'); }
+  })
+  .catch(function(){alert('ไม่มีอินเตอร์เน็ต');});
 }
 
 // ─── Summary ──────────────────────────────
@@ -712,14 +966,8 @@ function calcMonthly() {
 function init() {
   showLoading('กำลังโหลดข้อมูลจาก Google Sheets...');
   // โหลด settings + daily + trades พร้อมกัน
-  Promise.all([
-    sheetGet('getSettings'),
-    sheetGet('getDaily'),
-    sheetGet('getTrades')
-  ])
-  .then(function(results) {
-    var sCfg = results[0], sDaily = results[1], sTrades = results[2];
-    // settings
+  sheetGet('getSettings')
+  .then(function(sCfg) {
     if (sCfg.status==='ok' && sCfg.settings) {
       var cfg = sCfg.settings;
       applyTheme(cfg.theme === 'dark');
@@ -728,16 +976,20 @@ function init() {
     } else {
       if (window.matchMedia && window.matchMedia('(prefers-color-scheme:dark)').matches) applyTheme(true);
     }
-    // daily — reset ถ้าเป็นวันใหม่
+    return sheetGet('getDaily');
+  })
+  .then(function(sDaily) {
     if (sDaily.status==='ok' && sDaily.found) {
-      dailyPnl    = parseFloat(sDaily.pnl)     || 0;
-      dailyTrades = parseInt(sDaily.trades)     || 0;
-      dailyWins   = parseInt(sDaily.wins)       || 0;
-      dailyLosses = parseInt(sDaily.losses)     || 0;
-      consLoss    = parseInt(sDaily.consloss)   || 0;
+      dailyPnl    = parseFloat(sDaily.pnl)   || 0;
+      dailyTrades = parseInt(sDaily.trades)   || 0;
+      dailyWins   = parseInt(sDaily.wins)     || 0;
+      dailyLosses = parseInt(sDaily.losses)   || 0;
+      consLoss    = parseInt(sDaily.consloss) || 0;
     }
     updateHS();
-    // trades
+    return sheetGet('getTrades');
+  })
+  .then(function(sTrades) {
     if (sTrades.status==='ok') {
       entries = (sTrades.rows||[]).map(function(r){
         return {date:String(r[0]||''),time:String(r[1]||''),dir:String(r[2]||''),
