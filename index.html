@@ -273,27 +273,38 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   <span class="slabel">เป้าหมายรายเดือน</span>
   <div class="card">
     <div class="r2" style="margin-bottom:12px">
-      <div class="fl"><label>เป้ากำไร/เดือน (฿)</label><input type="number" id="mt-target" value="15000" min="100" step="500" inputmode="decimal" oninput="saveSetting('monthly_target',this.value);calcMonthly()"></div>
+      <div class="fl">
+        <label>เลือกเดือน</label>
+        <select id="mt-month" onchange="calcMonthly()">
+          <option value="">กำลังโหลด...</option>
+        </select>
+      </div>
       <div class="fl"><label>อัตราแลกเปลี่ยน (฿/$)</label><input type="number" id="mt-fx" value="32.75" min="1" step="0.01" inputmode="decimal" oninput="saveSetting('fx_rate',this.value);calcMonthly()"></div>
     </div>
     <div class="fl" style="margin-bottom:12px">
-      <label>กำไรสะสมเดือนนี้ ($)</label>
-      <div style="display:flex;gap:8px">
-        <input type="number" id="mt-cur" value="0" step="1" inputmode="decimal" style="flex:1" oninput="calcMonthly()">
-        <button class="btn" onclick="syncPnl()">ดึงจาก Hard Stop</button>
-      </div>
+      <label>เป้ากำไร/เดือน (฿)</label>
+      <input type="number" id="mt-target" value="15000" min="100" step="500" inputmode="decimal" oninput="saveSetting('monthly_target',this.value);calcMonthly()">
     </div>
     <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--t2);margin-bottom:6px">
       <span>ความคืบหน้า</span><span id="mt-pctlbl">0%</span>
     </div>
     <div class="pgwrap"><div class="pgbar" id="mt-pgbar" style="width:0%;background:var(--bl)"></div></div>
     <div class="sgrid" style="margin-bottom:0">
-      <div class="sbox"><div class="snum g" id="mt-done" style="font-size:18px">฿0</div><div class="slbl">ได้แล้ว</div></div>
+      <div class="sbox"><div class="snum g" id="mt-done" style="font-size:18px">฿0</div><div class="slbl">กำไรที่ได้</div></div>
       <div class="sbox"><div class="snum a" id="mt-left" style="font-size:18px">฿15,000</div><div class="slbl">เหลืออีก</div></div>
       <div class="sbox"><div class="snum b" id="mt-perday" style="font-size:18px">$0</div><div class="slbl">ต้องทำ/วัน</div></div>
     </div>
   </div>
-  <div class="hsbar safe" id="mt-warn">กรอกข้อมูลเพื่อดูสถานะ</div>
+  <!-- สรุปเดือนที่เลือก -->
+  <div class="card">
+    <div class="rtitle" style="margin-bottom:10px" id="mt-monthlabel">สรุปเดือนนี้</div>
+    <div class="drow"><span class="dk">จำนวนเทรด</span><span class="dv" id="mt-count">0</span></div>
+    <div class="drow"><span class="dk">Win / Loss</span><span class="dv" id="mt-wl">0 / 0</span></div>
+    <div class="drow"><span class="dk">Win Rate</span><span class="dv" id="mt-wr">0%</span></div>
+    <div class="drow"><span class="dk">P&amp;L รวม</span><span class="dv" id="mt-pnl-total">$0</span></div>
+    <div class="drow"><span class="dk">Revenge Trade</span><span class="dv" style="color:var(--rd)" id="mt-revenge">0 ครั้ง</span></div>
+  </div>
+  <div class="hsbar safe" id="mt-warn">เลือกเดือนเพื่อดูสถานะ</div>
 </div>
 
 </div><!-- end .app -->
@@ -411,13 +422,39 @@ function resetDay() {
   updateHS(); saveDaily();
 }
 
+function isoDate(d) {
+  var y = d.getFullYear();
+  var m = String(d.getMonth()+1).padStart(2,'0');
+  var day = String(d.getDate()).padStart(2,'0');
+  return y+'-'+m+'-'+day;
+}
+function displayDate(iso) {
+  // แปลง 2026-05-03 → 3 พ.ค. 2026
+  if (!iso || iso.indexOf('-') === -1) return iso;
+  var parts = iso.split('-');
+  if (parts.length !== 3) return iso;
+  var months = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+  return parseInt(parts[2])+' '+months[parseInt(parts[1])-1]+' '+parts[0];
+}
+function monthLabel(iso) {
+  // แปลง 2026-05-03 → พ.ค. 2026
+  if (!iso || iso.indexOf('-') === -1) return iso;
+  var parts = iso.split('-');
+  var months = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+  return months[parseInt(parts[1])-1]+' '+parts[0];
+}
+function monthKey(iso) {
+  if (!iso || iso.indexOf('-') === -1) return '';
+  return iso.substring(0,7); // 2026-05
+}
+
 // ─── Journal ──────────────────────────────
 function saveEntry() {
   var pnlVal = parseFloat(document.getElementById('j-pnl').value) || 0;
   var resVal = document.getElementById('j-res').value;
   var now    = new Date();
   var e = {
-    date:   now.toLocaleDateString('th-TH',{day:'numeric',month:'short'}),
+    date:   isoDate(now),
     time:   now.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'}),
     dir:    document.getElementById('j-dir').value,
     res:    resVal,
@@ -442,7 +479,13 @@ function saveEntry() {
   sheetPost({action:'saveTrade', date:e.date, time:e.time, dir:e.dir, result:e.res,
     entry:e.entry, pnl:e.pnl, emotion:e.emo, reason:e.reason, learn:e.learn})
   .then(function(d) {
-    if (d.status==='ok') { setSyncUI('ok','บันทึกสำเร็จ ✓'); entries.unshift(e); renderLog(); }
+    if (d.status==='ok') {
+      setSyncUI('ok','บันทึกสำเร็จ ✓');
+      entries.unshift(e);
+      renderLog();
+      buildMonthDropdown();
+      calcMonthly();
+    }
     else setSyncUI('err','บันทึกไม่สำเร็จ กรุณาลองใหม่');
     document.getElementById('save-btn').disabled = false;
   })
@@ -463,6 +506,8 @@ function loadTrades() {
           emo:String(r[6]||'-'),reason:String(r[7]||''),learn:String(r[8]||'')};
       });
       renderLog();
+      buildMonthDropdown();
+      calcMonthly();
     }
   })
   .catch(function(){ document.getElementById('log-list').innerHTML='<div class="empty">โหลดไม่ได้ — ตรวจสอบอินเตอร์เน็ต</div>'; });
@@ -475,7 +520,7 @@ function renderLog() {
     var ir=e.emo==='revenge'||e.emo==='โกรธ/หัวร้อน';
     var rc=e.res==='Win'?'win':e.res==='Loss'?'loss':'be';
     return '<div class="logitem">'
-      +'<div class="loghd"><span class="logdir">'+(e.date||'')+' '+(e.time||'')+'&nbsp;&nbsp;'+(e.dir||'')+'</span>'
+      +'<div class="loghd"><span class="logdir">'+displayDate(e.date||'')+' '+(e.time||'')+'&nbsp;&nbsp;'+(e.dir||'')+'</span>'
       +'<span class="logres '+rc+'">'+(e.res||'')+' '+ps+'</span></div>'
       +'<div class="logemo">อารมณ์: <span class="'+(ir?'logrev':'')+'">'+e.emo+'</span></div>'
       +(e.reason?'<div class="lognote">เหตุผล: '+e.reason+'</div>':'')
@@ -563,30 +608,75 @@ function resetCL(){CL.forEach(function(i){i.ok=false;});renderCL();}
 function saveSetting(key, val) {
   sheetPost({action:'saveSetting', key:key, value:val});
 }
-function calcMonthly(){
-  var tThb=parseFloat(document.getElementById('mt-target').value)||0;
-  var fx=parseFloat(document.getElementById('mt-fx').value)||32.75;
-  var cur=parseFloat(document.getElementById('mt-cur').value)||0;
-  var tUsd=tThb/fx, curThb=cur*fx;
-  var leftThb=Math.max(0,tThb-curThb), leftUsd=Math.max(0,tUsd-cur);
-  var pct=tUsd>0?Math.min(100,Math.round(cur/tUsd*100)):0;
-  var today=new Date(),dim=new Date(today.getFullYear(),today.getMonth()+1,0).getDate();
-  var tdl=Math.max(1,Math.round((dim-today.getDate())*18/30));
-  var pd=leftUsd/tdl;
-  document.getElementById('mt-pctlbl').textContent=pct+'%';
-  var pb=document.getElementById('mt-pgbar');
-  pb.style.width=pct+'%'; pb.style.background=pct>=100?'var(--gn)':pct>=60?'var(--am)':'var(--bl)';
-  document.getElementById('mt-done').textContent='฿'+Math.round(curThb).toLocaleString();
-  document.getElementById('mt-left').textContent='฿'+Math.round(leftThb).toLocaleString();
-  document.getElementById('mt-perday').textContent='$'+pd.toFixed(1);
-  var w=document.getElementById('mt-warn');
-  if(pct>=100){w.className='hsbar safe';w.textContent='ถึงเป้าแล้ว! หยุดเทรดเดือนนี้ได้เลย';}
-  else if(pct>=75){w.className='hsbar safe';w.textContent=pct+'% แล้ว — ใกล้ถึงเป้า อย่า overtrade';}
-  else if(pd>30){w.className='hsbar stop';w.textContent='ต้องทำ $'+pd.toFixed(1)+'/วัน — สูงมาก เสี่ยง overtrade';}
-  else if(pd>15){w.className='hsbar warn';w.textContent='ต้องทำ $'+pd.toFixed(1)+'/วัน — ท้าทาย แต่ยังทำได้';}
-  else{w.className='hsbar safe';w.textContent='ต้องทำ $'+pd.toFixed(1)+'/วัน — อยู่ในแผน เทรดปกติได้เลย';}
+function buildMonthDropdown() {
+  var sel = document.getElementById('mt-month');
+  // หาเดือนที่มีข้อมูลจาก entries
+  var keys = {};
+  entries.forEach(function(e) { if(e.date) keys[monthKey(e.date)] = true; });
+  // เพิ่มเดือนปัจจุบันเสมอ
+  var now = new Date();
+  var curKey = isoDate(now).substring(0,7);
+  keys[curKey] = true;
+  var sorted = Object.keys(keys).filter(Boolean).sort().reverse();
+  sel.innerHTML = sorted.map(function(k) {
+    var parts = k.split('-');
+    var months = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+    var label = months[parseInt(parts[1])-1]+' '+parts[0];
+    return '<option value="'+k+'"'+(k===curKey?' selected':'')+'>'+label+'</option>';
+  }).join('');
 }
-function syncPnl(){document.getElementById('mt-cur').value=dailyPnl.toFixed(2);calcMonthly();}
+function calcMonthly() {
+  var selKey  = document.getElementById('mt-month').value;
+  var tThb    = parseFloat(document.getElementById('mt-target').value) || 0;
+  var fx      = parseFloat(document.getElementById('mt-fx').value)     || 32.75;
+  if (!selKey) return;
+  // กรองเทรดของเดือนที่เลือก
+  var monthEntries = entries.filter(function(e){ return monthKey(e.date||'') === selKey; });
+  var tot  = monthEntries.length;
+  var wins = monthEntries.filter(function(e){ return e.res==='Win';  }).length;
+  var loss = monthEntries.filter(function(e){ return e.res==='Loss'; }).length;
+  var rev  = monthEntries.filter(function(e){ return e.emo==='revenge'||e.emo==='โกรธ/หัวร้อน'; }).length;
+  var pnl  = monthEntries.reduce(function(s,e){ return s+(parseFloat(e.pnl)||0); }, 0);
+  var wr   = tot>0 ? Math.round(wins/tot*100) : 0;
+  // อัปเดต summary card
+  var parts = selKey.split('-');
+  var months = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+  document.getElementById('mt-monthlabel').textContent = 'สรุป '+months[parseInt(parts[1])-1]+' '+parts[0];
+  document.getElementById('mt-count').textContent    = tot+' เทรด';
+  document.getElementById('mt-wl').textContent       = wins+' / '+loss;
+  document.getElementById('mt-wr').textContent       = wr+'%';
+  document.getElementById('mt-pnl-total').textContent= (pnl>=0?'+':'')+pnl.toFixed(2)+'$';
+  document.getElementById('mt-revenge').textContent  = rev+' ครั้ง';
+  // progress
+  var tUsd    = tThb / fx;
+  var pct     = tUsd>0 ? Math.min(100, Math.round(pnl/tUsd*100)) : 0;
+  var leftUsd = Math.max(0, tUsd-pnl);
+  var leftThb = leftUsd * fx;
+  var curThb  = pnl * fx;
+  document.getElementById('mt-pctlbl').textContent = pct+'%';
+  var pb = document.getElementById('mt-pgbar');
+  pb.style.width      = Math.max(0,pct)+'%';
+  pb.style.background = pct>=100?'var(--gn)':pct>=60?'var(--am)':'var(--bl)';
+  document.getElementById('mt-done').textContent   = '฿'+Math.round(curThb).toLocaleString();
+  document.getElementById('mt-left').textContent   = '฿'+Math.round(leftThb).toLocaleString();
+  // คำนวณวันเทรดที่เหลือ (เฉพาะเดือนปัจจุบัน)
+  var now = new Date(), curKey = isoDate(now).substring(0,7);
+  var pd = 0;
+  if (selKey === curKey) {
+    var dim = new Date(now.getFullYear(), now.getMonth()+1, 0).getDate();
+    var tdl = Math.max(1, Math.round((dim-now.getDate())*18/30));
+    pd = leftUsd / tdl;
+    document.getElementById('mt-perday').textContent = '$'+pd.toFixed(1);
+  } else {
+    document.getElementById('mt-perday').textContent = pnl>=0?'+$'+pnl.toFixed(1):'-$'+Math.abs(pnl).toFixed(1);
+  }
+  var w = document.getElementById('mt-warn');
+  if (pct>=100)  { w.className='hsbar safe'; w.textContent='ถึงเป้าแล้ว! หยุดเทรดเดือนนี้ได้เลย'; }
+  else if(pct>=75){ w.className='hsbar safe'; w.textContent=pct+'% แล้ว — ใกล้ถึงเป้า อย่า overtrade'; }
+  else if(pd>30)  { w.className='hsbar stop'; w.textContent='ต้องทำ $'+pd.toFixed(1)+'/วัน — สูงมาก เสี่ยง overtrade'; }
+  else if(pd>15)  { w.className='hsbar warn'; w.textContent='ต้องทำ $'+pd.toFixed(1)+'/วัน — ท้าทาย แต่ยังทำได้'; }
+  else            { w.className='hsbar safe'; w.textContent= selKey===curKey?'ต้องทำ $'+pd.toFixed(1)+'/วัน — อยู่ในแผน':'สรุปเดือนที่ผ่านมา'; }
+}
 
 // ─── Init ─────────────────────────────────
 function init() {
@@ -625,6 +715,7 @@ function init() {
           emo:String(r[6]||'-'),reason:String(r[7]||''),learn:String(r[8]||'')};
       });
       renderLog();
+      buildMonthDropdown();
     }
     calcLot(); renderCL(); calcMonthly();
     hideLoading();
