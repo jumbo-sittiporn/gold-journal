@@ -216,15 +216,21 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       <button class="ebtn" onclick="setFilter('week',this)">สัปดาห์นี้</button>
       <button class="ebtn" onclick="setFilter('month',this)">เดือนนี้</button>
     </div>
-    <div style="display:flex;gap:8px;align-items:center">
+    <div style="display:flex;gap:8px;align-items:flex-end">
       <div class="fl" style="flex:1;margin:0">
-        <input type="date" id="log-date-from" onchange="renderLog()" style="font-size:13px;padding:6px 10px">
+        <label style="font-size:11px;color:var(--t3);display:block;margin-bottom:4px">จาก (วว/ดด/ปปปป)</label>
+        <input type="text" id="log-date-from" placeholder="01/05/2026" maxlength="10"
+          oninput="formatDateInput(this)" onchange="renderLog()"
+          style="font-size:13px;padding:6px 10px;letter-spacing:0.05em">
       </div>
-      <span style="font-size:12px;color:var(--t3)">ถึง</span>
+      <span style="font-size:12px;color:var(--t3);padding-bottom:8px">ถึง</span>
       <div class="fl" style="flex:1;margin:0">
-        <input type="date" id="log-date-to" onchange="renderLog()" style="font-size:13px;padding:6px 10px">
+        <label style="font-size:11px;color:var(--t3);display:block;margin-bottom:4px">ถึง (วว/ดด/ปปปป)</label>
+        <input type="text" id="log-date-to" placeholder="31/05/2026" maxlength="10"
+          oninput="formatDateInput(this)" onchange="renderLog()"
+          style="font-size:13px;padding:6px 10px;letter-spacing:0.05em">
       </div>
-      <button class="resetbtn" onclick="clearDateFilter()" style="white-space:nowrap">ล้าง</button>
+      <button class="resetbtn" onclick="clearDateFilter()" style="white-space:nowrap;padding-bottom:8px">ล้าง</button>
     </div>
   </div>
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
@@ -604,8 +610,9 @@ function monthLabel(iso) {
   return months[parseInt(parts[1])-1]+' '+parts[0];
 }
 function monthKey(iso) {
-  if (!iso || iso.indexOf('-') === -1) return '';
-  return iso.substring(0,7); // 2026-05
+  var converted = toISO(iso);
+  if (!converted || converted.indexOf('-') === -1) return '';
+  return converted.substring(0,7);
 }
 
 var selectedDir = 'BUY';
@@ -678,6 +685,26 @@ function saveEntry() {
 
 // ─── Log filter ───────────────────────────
 var currentFilter = 'all';
+
+function formatDateInput(el) {
+  // auto-format dd/mm/yyyy ขณะพิมพ์
+  var v = el.value.replace(/[^\d]/g,'');
+  if (v.length >= 5) v = v.substring(0,2)+'/'+v.substring(2,4)+'/'+v.substring(4,8);
+  else if (v.length >= 3) v = v.substring(0,2)+'/'+v.substring(2);
+  el.value = v;
+  if (v.length === 10) renderLog();
+}
+
+function parseDDMMYYYY(str) {
+  // แปลง dd/mm/yyyy → yyyy-mm-dd เพื่อเปรียบเทียบ
+  if (!str) return '';
+  if (/^\d{4}-\d{2}-\d{2}$/.test(str)) return str;
+  var p = str.split('/');
+  if (p.length === 3 && p[2].length === 4) {
+    return p[2]+'-'+p[1].padStart(2,'0')+'-'+p[0].padStart(2,'0');
+  }
+  return '';
+}
 function setFilter(f, btn) {
   currentFilter = f;
   document.querySelectorAll('#tab-log .ebtn').forEach(function(b){ b.classList.remove('sel'); });
@@ -691,16 +718,47 @@ function clearDateFilter() {
   document.getElementById('log-date-to').value   = '';
   renderLog();
 }
+function formatDateInput(el) {
+  // ใส่ / อัตโนมัติ เช่น 0105 → 01/05
+  var v = el.value.replace(/\D/g,'');
+  if (v.length >= 5) v = v.substring(0,2)+'/'+v.substring(2,4)+'/'+v.substring(4,8);
+  else if (v.length >= 3) v = v.substring(0,2)+'/'+v.substring(2);
+  el.value = v;
+}
+function dmyToISO(dmy) {
+  // แปลง dd/mm/yyyy → yyyy-mm-dd
+  if (!dmy || dmy.length < 10) return '';
+  var parts = dmy.split('/');
+  if (parts.length !== 3 || parts[2].length !== 4) return '';
+  return parts[2]+'-'+parts[1].padStart(2,'0')+'-'+parts[0].padStart(2,'0');
+}
+  if (!dateStr) return '';
+  // ถ้าเป็น ISO แล้ว return เลย
+  if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return dateStr;
+  // แปลงวันที่ไทย เช่น "3 พ.ค." หรือ "3 พ.ค. 2026"
+  var thMonths = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+  for (var i = 0; i < thMonths.length; i++) {
+    if (dateStr.indexOf(thMonths[i]) >= 0) {
+      var parts = dateStr.replace(thMonths[i], '').trim().split(' ').filter(Boolean);
+      var day = parts[0] ? String(parts[0]).padStart(2,'0') : '01';
+      var year = parts[1] ? parts[1] : new Date().getFullYear();
+      // แปลง พ.ศ. เป็น ค.ศ.
+      if (parseInt(year) > 2500) year = parseInt(year) - 543;
+      return year + '-' + String(i+1).padStart(2,'0') + '-' + day;
+    }
+  }
+  return dateStr;
+}
 function getFilteredEntries() {
   var now   = new Date(), today = isoDate(now);
   var dow   = now.getDay()===0?6:now.getDay()-1;
   var mon   = new Date(now); mon.setDate(now.getDate()-dow);
   var weekStart  = isoDate(mon);
   var monthStart = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-01';
-  var from = document.getElementById('log-date-from').value;
-  var to   = document.getElementById('log-date-to').value;
+  var from = dmyToISO(document.getElementById('log-date-from').value);
+  var to   = dmyToISO(document.getElementById('log-date-to').value);
   return entries.filter(function(e) {
-    var d = e.date||'';
+    var d = toISO(e.date||'');
     if (from && d < from) return false;
     if (to   && d > to)   return false;
     if (currentFilter==='today') return d===today;
