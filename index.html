@@ -732,18 +732,20 @@ function dmyToISO(dmy) {
   if (parts.length !== 3 || parts[2].length !== 4) return '';
   return parts[2]+'-'+parts[1].padStart(2,'0')+'-'+parts[0].padStart(2,'0');
 }
+function toISO(dateStr) {
   if (!dateStr) return '';
+  dateStr = String(dateStr).trim();
   // ถ้าเป็น ISO แล้ว return เลย
   if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return dateStr;
   // แปลงวันที่ไทย เช่น "3 พ.ค." หรือ "3 พ.ค. 2026"
   var thMonths = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
   for (var i = 0; i < thMonths.length; i++) {
     if (dateStr.indexOf(thMonths[i]) >= 0) {
-      var parts = dateStr.replace(thMonths[i], '').trim().split(' ').filter(Boolean);
-      var day = parts[0] ? String(parts[0]).padStart(2,'0') : '01';
-      var year = parts[1] ? parts[1] : new Date().getFullYear();
-      // แปลง พ.ศ. เป็น ค.ศ.
-      if (parseInt(year) > 2500) year = parseInt(year) - 543;
+      var cleaned = dateStr.replace(thMonths[i], '').trim();
+      var parts   = cleaned.split(' ').filter(Boolean);
+      var day     = parts[0] ? String(parseInt(parts[0])).padStart(2,'0') : '01';
+      var year    = parts[1] ? parseInt(parts[1]) : new Date().getFullYear();
+      if (year > 2500) year = year - 543;
       return year + '-' + String(i+1).padStart(2,'0') + '-' + day;
     }
   }
