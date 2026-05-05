@@ -223,10 +223,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   <!-- Filter bar -->
   <div class="card" style="margin-bottom:10px;padding:10px 14px">
     <div class="erow" style="margin-bottom:8px">
-      <button class="ebtn sel" onclick="setFilter('all',this)">ทั้งหมด</button>
-      <button class="ebtn" onclick="setFilter('today',this)">วันนี้</button>
+      <button class="ebtn sel" onclick="setFilter('today',this)">วันนี้</button>
       <button class="ebtn" onclick="setFilter('week',this)">สัปดาห์นี้</button>
       <button class="ebtn" onclick="setFilter('month',this)">เดือนนี้</button>
+      <button class="ebtn" onclick="setFilter('all',this)">ทั้งหมด</button>
     </div>
     <div style="display:flex;gap:8px;align-items:flex-end">
       <div class="fl" style="flex:1;margin:0">
@@ -299,12 +299,21 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 <!-- TAB 4: SUMMARY -->
 <div id="tab-summary" class="panel">
   <span class="slabel">สรุปสถิติ</span>
+  <div class="card" style="margin-bottom:10px;padding:10px 14px">
+    <div class="erow">
+      <button class="ebtn sel" onclick="setSumFilter('today',this)">วันนี้</button>
+      <button class="ebtn" onclick="setSumFilter('week',this)">สัปดาห์นี้</button>
+      <button class="ebtn" onclick="setSumFilter('month',this)">เดือนนี้</button>
+      <button class="ebtn" onclick="setSumFilter('all',this)">ทั้งหมด</button>
+    </div>
+  </div>
   <div class="sumcard">
-    <div class="sumtitle">สรุปทั้งหมด</div>
+    <div class="sumtitle" id="sum-title">สรุปทั้งหมด</div>
     <div class="sumrow"><span>จำนวนเทรด</span><span class="sumval" id="sum-trades">0</span></div>
     <div class="sumrow"><span>ชนะ / แพ้</span><span class="sumval" id="sum-wl">0 / 0</span></div>
     <div class="sumrow"><span>Win Rate</span><span class="sumval" id="sum-wr">0%</span></div>
     <div class="sumrow"><span>P&amp;L รวม</span><span class="sumval" id="sum-pnl">$0</span></div>
+    <div class="sumrow"><span>P&amp;L เฉลี่ย/เทรด</span><span class="sumval" id="sum-avg">$0</span></div>
     <div class="sumrow"><span>Revenge Trade</span><span class="sumval" style="color:var(--rd)" id="sum-rev">0 ครั้ง</span></div>
   </div>
   <div class="card">
@@ -715,7 +724,7 @@ function saveEntry() {
 }
 
 // ─── Log filter ───────────────────────────
-var currentFilter = 'all';
+var currentFilter = 'today';
 
 function formatDateInput(el) {
   // auto-format dd/mm/yyyy ขณะพิมพ์
@@ -945,29 +954,59 @@ function quickDelete(origIdx, sheetRow) {
 }
 
 // ─── Summary ──────────────────────────────
+var sumFilter = 'today';
+function setSumFilter(f, btn) {
+  sumFilter = f;
+  document.querySelectorAll('#tab-summary .ebtn').forEach(function(b){ b.classList.remove('sel'); });
+  btn.classList.add('sel');
+  renderSummary();
+}
+function getSumEntries() {
+  var now = new Date(), today = isoDate(now);
+  var dow = now.getDay()===0?6:now.getDay()-1;
+  var mon = new Date(now); mon.setDate(now.getDate()-dow);
+  var weekStart  = isoDate(mon);
+  var monthStart = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-01';
+  return entries.filter(function(e) {
+    var d = toISO(e.date||'');
+    if (sumFilter==='today') return d===today;
+    if (sumFilter==='week')  return d>=weekStart && d<=today;
+    if (sumFilter==='month') return d>=monthStart && d<=today;
+    return true;
+  });
+}
 function renderSummary() {
-  var tot=entries.length;
-  var w=entries.filter(function(e){return e.res==='Win';}).length;
-  var l=entries.filter(function(e){return e.res==='Loss';}).length;
-  var r=entries.filter(function(e){return e.emo==='revenge'||e.emo==='โกรธ/หัวร้อน';}).length;
-  var p=entries.reduce(function(s,e){return s+(parseFloat(e.pnl)||0);},0);
-  var wr=tot>0?Math.round(w/tot*100):0;
-  document.getElementById('sum-trades').textContent=tot;
-  document.getElementById('sum-wl').textContent=w+' / '+l;
-  document.getElementById('sum-wr').textContent=wr+'%';
-  document.getElementById('sum-pnl').textContent=(p>=0?'+':'')+p.toFixed(0)+'$';
-  document.getElementById('sum-rev').textContent=r+' ครั้ง';
-  var ins='';
-  if(tot<5){ins='บันทึกเทรดอย่างน้อย 5 ครั้งเพื่อดูสถิติ';}
-  else{
-    var pts=[];
-    if(r>0){var rl=entries.filter(function(e){return(e.emo==='revenge'||e.emo==='โกรธ/หัวร้อน')&&e.res==='Loss';}).length;pts.push('Revenge trade '+r+' ครั้ง แพ้ '+rl+' ครั้ง ('+Math.round(rl/r*100)+'%)');}
-    if(wr>=60)pts.push('Win rate ดีมาก ('+wr+'%) รักษาวินัยต่อไป');
-    else if(wr>=45)pts.push('Win rate พอใช้ได้ ('+wr+'%) ลองดู setup ที่ชนะบ่อยที่สุด');
-    else pts.push('Win rate ต่ำ ('+wr+'%) ลองลด trade ที่เข้านอกแผน');
-    ins=pts.join(' — ');
+  var labels = {today:'วันนี้', week:'สัปดาห์นี้', month:'เดือนนี้', all:'ทั้งหมด'};
+  document.getElementById('sum-title').textContent = 'สรุป'+labels[sumFilter];
+  var list = getSumEntries();
+  var tot  = list.length;
+  var w    = list.filter(function(e){ return e.res==='Win';  }).length;
+  var l    = list.filter(function(e){ return e.res==='Loss'; }).length;
+  var r    = list.filter(function(e){ return e.emo&&(e.emo.indexOf('revenge')>=0||e.emo.indexOf('โกรธ')>=0); }).length;
+  var p    = list.reduce(function(s,e){ return s+(parseFloat(e.pnl)||0); }, 0);
+  var wr   = tot>0 ? Math.round(w/tot*100) : 0;
+  var avg  = tot>0 ? p/tot : 0;
+  document.getElementById('sum-trades').textContent = tot;
+  document.getElementById('sum-wl').textContent     = w+' / '+l;
+  document.getElementById('sum-wr').textContent     = wr+'%';
+  document.getElementById('sum-pnl').textContent    = (p>=0?'+':'')+p.toFixed(2)+'$';
+  document.getElementById('sum-avg').textContent    = (avg>=0?'+':'')+avg.toFixed(2)+'$';
+  document.getElementById('sum-rev').textContent    = r+' ครั้ง';
+  var ins = '';
+  if (tot < 5) {
+    ins = 'บันทึกเทรดอย่างน้อย 5 ครั้งเพื่อดูสถิติ';
+  } else {
+    var pts = [];
+    if (r > 0) {
+      var rl = list.filter(function(e){ return (e.emo&&(e.emo.indexOf('revenge')>=0||e.emo.indexOf('โกรธ')>=0))&&e.res==='Loss'; }).length;
+      pts.push('Revenge trade '+r+' ครั้ง แพ้ '+rl+' ครั้ง ('+Math.round(rl/r*100)+'%)');
+    }
+    if (wr>=60)      pts.push('Win rate ดีมาก ('+wr+'%) รักษาวินัยต่อไป');
+    else if (wr>=45) pts.push('Win rate พอใช้ได้ ('+wr+'%) ลองดู setup ที่ชนะบ่อยที่สุด');
+    else             pts.push('Win rate ต่ำ ('+wr+'%) ลองลด trade ที่เข้านอกแผน');
+    ins = pts.join(' — ');
   }
-  document.getElementById('sum-insight').textContent=ins;
+  document.getElementById('sum-insight').textContent = ins;
 }
 
 // ─── Lot Size ─────────────────────────────
