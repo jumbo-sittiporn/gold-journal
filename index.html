@@ -178,8 +178,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
           <input type="date" id="j-date" style="font-size:14px;padding:9px 12px">
         </div>
         <div class="fl">
-          <label>เวลา</label>
-          <input type="time" id="j-time" style="font-size:14px;padding:9px 12px">
+          <label>เวลา (ชช:นน)</label>
+          <input type="text" id="j-time" placeholder="เช่น 14:30" maxlength="5"
+            inputmode="numeric" style="font-size:14px;padding:9px 12px;letter-spacing:0.05em"
+            oninput="formatTimeInput(this)">
         </div>
       </div>
       <div class="fl">
@@ -532,6 +534,7 @@ function showTab(t, btn) {
   if (t === 'monthly')   calcMonthly();
   if (t === 'lotsize')   calcLot();
   if (t === 'log')       loadTrades();
+  if (t === 'journal')   setDefaultDateTime();
 }
 
 // ─── Emotion ──────────────────────────────
@@ -645,6 +648,18 @@ function autoResult(v) {
   return 'Breakeven';
 }
 
+function formatTimeInput(el) {
+  var v = el.value.replace(/[^\d]/g,'');
+  if (v.length >= 3) v = v.substring(0,2) + ':' + v.substring(2,4);
+  el.value = v;
+}
+function setDefaultDateTime() {
+  var now = new Date();
+  document.getElementById('j-date').value = isoDate(now);
+  document.getElementById('j-time').value =
+    String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
+}
+
 // ─── Journal ──────────────────────────────
 function saveEntry() {
   var pnlVal = parseFloat(document.getElementById('j-pnl').value) || 0;
@@ -677,6 +692,7 @@ function saveEntry() {
   document.getElementById('j-pnl-preview').textContent = '';
   resetEmo();
   selDir('BUY');
+  setDefaultDateTime();
   // บันทึกลง Sheets
   setSyncUI('loading','กำลังบันทึกลง Google Sheets...');
   document.getElementById('save-btn').disabled = true;
