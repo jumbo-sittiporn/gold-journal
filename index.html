@@ -172,6 +172,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   <span class="slabel">บันทึกเทรด</span>
   <div class="card">
     <div class="eform">
+      <div class="r2">
+        <div class="fl">
+          <label>วันที่</label>
+          <input type="date" id="j-date" style="font-size:14px;padding:9px 12px">
+        </div>
+        <div class="fl">
+          <label>เวลา</label>
+          <input type="time" id="j-time" style="font-size:14px;padding:9px 12px">
+        </div>
+      </div>
       <div class="fl">
         <label>ทิศทาง</label>
         <div class="erow">
@@ -640,9 +650,14 @@ function saveEntry() {
   var pnlVal = parseFloat(document.getElementById('j-pnl').value) || 0;
   var resVal = autoResult(pnlVal);
   var now    = new Date();
+  // ใช้วันที่/เวลาที่เลือก ถ้าไม่ได้เลือกใช้ปัจจุบัน
+  var selDate = document.getElementById('j-date').value;
+  var selTime = document.getElementById('j-time').value;
+  var dateStr = selDate || isoDate(now);
+  var timeStr = selTime || now.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'});
   var e = {
-    date:   isoDate(now),
-    time:   now.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'}),
+    date:   dateStr,
+    time:   timeStr,
     dir:    selectedDir,
     res:    resVal,
     entry:  document.getElementById('j-entry').value,
